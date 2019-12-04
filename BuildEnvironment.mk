@@ -4,7 +4,7 @@
 #
 
 BUILD_DIR = ./build
-CROSS_COMPILE_PREFIX = riscv64-unknown-elf
+CROSS_COMPILE_PREFIX = $(CROSS_COMPILE)
 
 SDK_DIR = ./freedom-e-sdk
 
