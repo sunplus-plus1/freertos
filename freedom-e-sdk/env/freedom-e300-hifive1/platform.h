@@ -36,7 +36,11 @@
 #define UART0_CTRL_ADDR _AC(0x10013000,UL) // riscv32: sfive_e
 #else
 //#define UART0_CTRL_ADDR _AC(0x10000000,UL) // riscv64: virt
-#define UART0_CTRL_ADDR _AC(0x9C000900,UL) // riscv64: I143
+#if 0 // riscv64: I143
+#define UART0_CTRL_ADDR _AC(0x9C000900,UL) // uart0
+#else
+#define UART0_CTRL_ADDR _AC(0x9C000980,UL) // uart1
+#endif
 #endif
 #define SPI0_CTRL_ADDR _AC(0x10014000,UL)
 #define PWM0_CTRL_ADDR _AC(0x10015000,UL)

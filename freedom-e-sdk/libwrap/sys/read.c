@@ -15,10 +15,6 @@
 #define UART_REG_STATUS_RX    (1 << 1)  /* 1: receive fifo not empty */
 #define UART_REG_STATUS_TX    (1 << 0)  /* 1: transmit fifo is not full */
 #define UART_REG_STATUS_TXE   (1 << 6)  /* 1: transmit fifo is empty */
-#if 1
-#undef UART0_CTRL_ADDR
-#define UART0_CTRL_ADDR _AC(0x9C000980,UL) // uart1
-#endif
 #define TX SP_UART_DATA
 #define RX SP_UART_DATA
 #define TX_READY ((UART0_REG(SP_UART_LSR) & UART_REG_STATUS_TXE) != 0)
