@@ -49,7 +49,11 @@ ASMFLAGS += -MT"$@" -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)"
 # Linker arguments __________________________________________
 LDFLAGS :=  -Xlinker --gc-sections -Xlinker --defsym=__stack_size=1K
 LDFLAGS += -O3 -g3 $(ARCH_FLAGS)
+ifeq ($(TARGET),32)
 LDFLAGS += -ffunction-sections -fdata-sections --specs=nano.specs
+else
+LDFLAGS += -ffunction-sections -fdata-sections --specs=nosys.specs
+endif
 LDFLAGS += -nostartfiles
 LDFLAGS += -T $(LINKER_SCRIPT)
 LDFLAGS += -L../
