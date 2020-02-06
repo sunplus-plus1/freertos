@@ -190,8 +190,8 @@ $(BUILD_DIRECTORIES):
 clean:
 	rm -rf $(BUILD_DIR)
 
-sim-qemu: $(OUT_ELF)
-	$(QEMU) $^ -nographic
+sim-qemu: out_elf
+	$(QEMU) $(OUT_ELF) -nographic
 
 gdb: $(OUT_ELF)
 	$(GDB) -iex "set mem inaccessible-by-default off" -iex "set arch riscv:rv32" -iex "set riscv use_compressed_breakpoint off"
