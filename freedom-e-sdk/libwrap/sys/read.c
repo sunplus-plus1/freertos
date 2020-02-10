@@ -39,6 +39,12 @@ void platform_putchar(char ch)
   UART0_REG(TX) = ch;
 }
 
+int platform_getchar(void)
+{
+  if (RX_READY) return UART0_REG(RX);
+  return -1;
+}
+
 ssize_t __wrap_read(int fd, void* ptr, size_t len)
 {
   uint8_t * current = (uint8_t *)ptr;
