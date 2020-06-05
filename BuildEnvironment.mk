@@ -9,12 +9,12 @@ CROSS_COMPILE_PREFIX = $(CROSS_COMPILE)
 SDK_DIR = ./freedom-e-sdk
 
 #-----------------------------------------------------------
-GCC     = $(CROSS_COMPILE_PREFIX)-gcc
-OBJCOPY = $(CROSS_COMPILE_PREFIX)-objcopy
-OBJDUMP = $(CROSS_COMPILE_PREFIX)-objdump
-AR      = $(CROSS_COMPILE_PREFIX)-ar
-RANLIB  = $(CROSS_COMPILE_PREFIX)-ranlib
-GDB     = $(CROSS_COMPILE_PREFIX)-gdb
+GCC     = $(CROSS_COMPILE_PREFIX)gcc
+OBJCOPY = $(CROSS_COMPILE_PREFIX)objcopy
+OBJDUMP = $(CROSS_COMPILE_PREFIX)objdump
+AR      = $(CROSS_COMPILE_PREFIX)ar
+RANLIB  = $(CROSS_COMPILE_PREFIX)ranlib
+GDB     = $(CROSS_COMPILE_PREFIX)gdb
 
 # Target Platform: 32(sifive_e) 64(virt) 143
 TARGET ?= 143
