@@ -1,6 +1,6 @@
 /*
- * FreeRTOS Kernel V10.2.1
- * Copyright (C) 2019 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS V202104.00
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -264,7 +264,7 @@ short sError = pdFALSE, sCheckVariableToUse;
 /*-----------------------------------------------------------*/
 
 /* This is called to check that all the created tasks are still running. */
-portBASE_TYPE xAreSemaphoreTasksStillRunning( void )
+BaseType_t xAreSemaphoreTasksStillRunning( void )
 {
 static short sLastCheckVariables[ semtstNUM_TASKS ] = { 0 };
 portBASE_TYPE xTask, xReturn = pdTRUE;

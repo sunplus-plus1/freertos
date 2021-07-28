@@ -1,6 +1,6 @@
 /*
- * FreeRTOS Kernel V10.2.1
- * Copyright (C) 2019 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS V202104.00
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -100,6 +100,12 @@ static void prvTestAbortingSemaphoreTake( void );
 static void prvTestAbortingEventGroupWait( void );
 static void prvTestAbortingQueueSend( void );
 static void prvTestAbortingStreamBufferReceive( void );
+
+/*
+ * Performs a few tests to cover code paths not otherwise covered by the continuous
+ * tests.
+ */
+static void prvPerformSingleTaskTests( void );
 
 /*
  * Checks the amount of time a task spent in the Blocked state is within the
@@ -208,6 +214,10 @@ const uint32_t ulMax = 0xffffffffUL;
 	/* Just to remove compiler warnings. */
 	( void ) pvParameters;
 
+	/* Start by performing a few tests to cover code not exercised in the loops
+	below. */
+	prvPerformSingleTaskTests();
+
 	xControllingTask = xTaskGetHandle( pcControllingTaskName );
 	configASSERT( xControllingTask );
 
@@ -264,26 +274,49 @@ const uint32_t ulMax = 0xffffffffUL;
 }
 /*-----------------------------------------------------------*/
 
+static void prvPerformSingleTaskTests( void )
+{
+TaskHandle_t xThisTask;
+BaseType_t xReturned;
+
+	/* Try unblocking this task using both the task and ISR versions of the API -
+	both should return false as this task is not blocked. */
+	xThisTask = xTaskGetCurrentTaskHandle();
+
+	xReturned = xTaskAbortDelay( xThisTask );
+	if( xReturned != pdFALSE )
+	{
+		xErrorOccurred = pdTRUE;
+	}
+}
+/*-----------------------------------------------------------*/
+
 static void prvTestAbortingTaskDelayUntil( void )
 {
 TickType_t xTimeAtStart, xLastBlockTime;
+BaseType_t xReturned;
 
 	/* Note the time before the delay so the length of the delay is known. */
 	xTimeAtStart = xTaskGetTickCount();
 
 	/* Take a copy of the time as it is updated in the call to
-	vTaskDelayUntil() but its original value is needed to determine the actual
+	xTaskDelayUntil() but its original value is needed to determine the actual
 	time spend in the Blocked state. */
 	xLastBlockTime = xTimeAtStart;
 
 	/* This first delay should just time out. */
-	vTaskDelayUntil( &xLastBlockTime, xMaxBlockTime );
+	xReturned = xTaskDelayUntil( &xLastBlockTime, xMaxBlockTime );
 	prvCheckExpectedTimeIsWithinAnAcceptableMargin( xTimeAtStart, xMaxBlockTime );
+	configASSERT( xReturned == pdTRUE );
+	/* Remove compiler warning about value being set but not used in the case
+	configASSERT() is not defined. */
+	( void ) xReturned;
 
 	/* This second delay should be aborted by the primary task half way
 	through.  Again take a copy of the time as it is updated in the call to
 	vTaskDelayUntil() buts its original value is needed to determine the amount
-	of time actually spent in the Blocked state. */
+	of time actually spent in the Blocked state.  This uses vTaskDelayUntil()
+	in place of xTaskDelayUntil() for test coverage. */
 	xTimeAtStart = xTaskGetTickCount();
 	xLastBlockTime = xTimeAtStart;
 	vTaskDelayUntil( &xLastBlockTime, xMaxBlockTime );
@@ -292,8 +325,12 @@ TickType_t xTimeAtStart, xLastBlockTime;
 	/* As with the other tests, the third block period should not time out. */
 	xTimeAtStart = xTaskGetTickCount();
 	xLastBlockTime = xTimeAtStart;
-	vTaskDelayUntil( &xLastBlockTime, xMaxBlockTime );
+	xReturned = xTaskDelayUntil( &xLastBlockTime, xMaxBlockTime );
 	prvCheckExpectedTimeIsWithinAnAcceptableMargin( xTimeAtStart, xMaxBlockTime );
+	configASSERT( xReturned == pdTRUE );
+	/* Remove compiler warning about value being set but not used in the case
+	configASSERT() is not defined. */
+	( void ) xReturned;
 }
 /*-----------------------------------------------------------*/
 
@@ -430,7 +467,7 @@ static void prvTestAbortingStreamBufferReceive( void )
 {
 TickType_t xTimeAtStart;
 StreamBufferHandle_t xStreamBuffer;
-EventBits_t xReturn;
+size_t xReturn;
 const size_t xTriggerLevelBytes = ( size_t ) 1;
 uint8_t uxRxData;
 

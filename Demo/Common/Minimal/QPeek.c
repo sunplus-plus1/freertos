@@ -1,6 +1,6 @@
 /*
- * FreeRTOS Kernel V10.2.1
- * Copyright (C) 2019 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS V202104.00
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -365,6 +365,7 @@ uint32_t ulValue;
 		if( ulValue != 0x01234567 )
 		{
 			/* We did not receive the expected value. */
+			xErrorDetected = pdTRUE;
 		}
 
 		/* Lets just delay a while as this is an intensive test as we don't
