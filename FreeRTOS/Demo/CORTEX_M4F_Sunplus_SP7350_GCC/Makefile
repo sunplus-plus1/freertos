@@ -32,7 +32,7 @@ CFLAGS := -DmainCREATE_SIMPLE_BLINKY_DEMO_ONLY=1
 
 DEFINES := -DHEAP3
 
-LD_FILE = ./scripts/q654_m4.ld
+LD_FILE = ./scripts/sp7350_m4.ld
 M4_MEM = $(shell grep -o "ORIGIN = 0x........" $(LD_FILE) | cut -c10-)
 LDFLAGS = -T $(LD_FILE) -specs=nano.specs --specs=rdimon.specs -lc -lrdimon
 LDFLAGS += -Xlinker -Map=${BUILD_DIR}/$(TARGET).map
@@ -62,7 +62,7 @@ $(BUILD_DIR)/$(BIN) : $(OBJ_FILES)
 	@hexdump -v -e '1/4 "%08x\n"' $@ > temp.hex
 	@python ../../../../ipack/tools/bin2zmem/bin2zmem_ddr4.py temp.hex $(M4_MEM)
 	@rm -rf temp.hex
-	@cd bin && tar caf zmem.tar.bz2 zmem*.hex Q654_run.hex && ls -lh zmem.tar.bz2
+	@cd bin && tar caf zmem.tar.bz2 zmem*.hex sp7350_run.hex && ls -lh zmem.tar.bz2
 
 %.d: %.c
 	@set -e; rm -f $@; \
