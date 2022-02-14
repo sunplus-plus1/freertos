@@ -184,6 +184,12 @@ void _start(void)
 	printf("_ebss      : %p\n", &_ebss);
 	printf("_estack    : %p\n\n", &_estack);
 #endif
+#ifdef __ARM_FEATURE_DSP // test DSP (SIMD inst: see CMSIS/cmsis_gcc.h)
+	printf("Test DSP   : ");
+	STAMP = __UQSUB16((u32)_sbss, (u32)_ebss);
+	STAMP = __SMLSDX((u32)_sbss, (u32)_ebss, (u32)_estack);
+	printf("PASS\n\n");
+#endif
 #if 1 // test mbox7
 	NVIC_SetVector(IRQ_TEST, (u32)isr_mbox7); // Set IRQ Handler
 	NVIC_EnableIRQ(IRQ_TEST); // Enable Interrupt
