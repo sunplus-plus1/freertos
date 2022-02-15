@@ -62,7 +62,7 @@ $(BUILD_DIR)/$(BIN) : $(OBJ_FILES)
 	@hexdump -v -e '1/4 "%08x\n"' $@ > temp.hex
 	@python ../../../../ipack/tools/bin2zmem/bin2zmem_ddr4.py temp.hex $(M4_MEM)
 	@rm -rf temp.hex
-	@cd bin && tar caf zmem.tar.bz2 zmem*.hex sp7350_run.hex && ls -lh zmem.tar.bz2
+	@cd bin && tar caf zmem.tar.bz2 zmem*.hex && ls -lh zmem.tar.bz2
 
 %.d: %.c
 	@set -e; rm -f $@; \
