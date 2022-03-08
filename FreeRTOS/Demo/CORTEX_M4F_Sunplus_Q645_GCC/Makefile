@@ -5,9 +5,13 @@ BIN := $(TARGET).bin
 
 BUILD_DIR := build
 
+# trace level define in util/trace.h
+CFLAGS :=-DTRACE_LEVE=4
+
 FREERTOS_DIR_REL := ../../../FreeRTOS
 FREERTOS_DIR := $(abspath $(FREERTOS_DIR_REL))
 KERNEL_DIR := $(FREERTOS_DIR)/Source
+UTIL_DIR := util
 
 FREERTOS_PLUS_DIR_REL := ../../../FreeRTOS-Plus
 FREERTOS_PLUS_DIR := $(abspath $(FREERTOS_PLUS_DIR_REL))
@@ -26,9 +30,11 @@ INCLUDE_DIRS += -ICMSIS
 INCLUDE_DIRS += -I$(FREERTOS_DIR)/Demo/Common/include
 INCLUDE_DIRS += -I$(KERNEL_DIR)/include
 INCLUDE_DIRS += -I$(KERNEL_DIR)/portable/GCC/ARM_CM4F
+INCLUDE_DIRS += -I$(UTIL_DIR)
 
 SOURCE_FILES += main_blinky.c
-CFLAGS := -DmainCREATE_SIMPLE_BLINKY_DEMO_ONLY=1
+SOURCE_FILES += $(UTIL_DIR)/trace.c
+CFLAGS += -DmainCREATE_SIMPLE_BLINKY_DEMO_ONLY=1
 
 DEFINES := -DHEAP3
 

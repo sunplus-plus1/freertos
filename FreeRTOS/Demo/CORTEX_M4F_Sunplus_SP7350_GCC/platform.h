@@ -1,6 +1,8 @@
 #ifndef __PLATFORM_H__
 #define __PLATFORM_H__
 
+#include "trace.h"
+
 typedef unsigned int u32;
 typedef volatile u32 * reg;
 
