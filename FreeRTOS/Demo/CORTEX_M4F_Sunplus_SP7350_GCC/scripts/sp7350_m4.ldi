@@ -26,7 +26,7 @@
 
 MEMORY
 {
-    RAM (xrw)  : ORIGIN = 0x1e000000, LENGTH = 4M
+    RAM (xrw)  : ORIGIN = M4_RUN_ADDRESS, LENGTH = 4M
 }
 ENTRY(Reset_Handler)
 

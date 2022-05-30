@@ -1,4 +1,8 @@
 PREFIX = ../../../../crossgcc/gcc-arm-none-eabi-10-2020-q4-major/bin/arm-none-eabi-
+TOPDIR = $(abspath .)
+
+
+CPP = $(PREFIX)cpp
 CC = $(PREFIX)gcc
 TARGET := m4
 BIN := $(TARGET).bin
@@ -38,8 +42,18 @@ CFLAGS += -DmainCREATE_SIMPLE_BLINKY_DEMO_ONLY=1
 
 DEFINES := -DHEAP3
 
+LD_SRC = ./scripts/sp7350_m4.ldi
 LD_FILE = ./scripts/sp7350_m4.ld
-M4_MEM = $(shell grep -o "ORIGIN = 0x........" $(LD_FILE) | cut -c10-)
+
+
+CONFIG_ROOT=$(TOPDIR)/../../../../.config
+DTS_CONFIG_ROOT=$(TOPDIR)/../../../../linux/kernel/arch/arm64/boot/dts
+LINUX_DTS=$(shell cat $(CONFIG_ROOT) | grep 'LINUX_DTB=' | sed 's/LINUX_DTB=//g').dts
+M4_DTS_DATA_TEMP1=$(shell sed -n -e '/rproc_0_reserved:/,/reg/p' $(DTS_CONFIG_ROOT)/$(LINUX_DTS) | sed -n -e '/reg/p')
+M4_DTS_DATA_TEMP2=$(shell echo "$(M4_DTS_DATA_TEMP1)"  | cut -d "x" -f 2 | cut -c 1-8)
+M4_MEM=0x$(M4_DTS_DATA_TEMP2)
+
+CFLAGS += -DM4_RUN_ADDRESS=$(M4_MEM)
 LDFLAGS = -T $(LD_FILE) -specs=nano.specs --specs=rdimon.specs -lc -lrdimon
 LDFLAGS += -Xlinker -Map=${BUILD_DIR}/$(TARGET).map
 
@@ -61,6 +75,7 @@ CFLAGS += $(INCLUDE_DIRS)
 .PHONY: clean
 
 $(BUILD_DIR)/$(BIN) : $(OBJ_FILES)
+	$(CPP) -P $(CFLAGS) $(LD_SRC) $(LD_FILE)
 	$(CC) -ffunction-sections -fdata-sections $(CFLAGS) $(LDFLAGS) $+ -o $(BUILD_DIR)/$(TARGET)
 	$(PREFIX)objdump -d -S $(BUILD_DIR)/$(TARGET) > $(BUILD_DIR)/$(TARGET).dis
 	$(PREFIX)objcopy -O binary -S $(BUILD_DIR)/$(TARGET) $@
