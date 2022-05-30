@@ -49,8 +49,9 @@ CONFIG_ROOT=$(TOPDIR)/../../../../.config
 DTS_CONFIG_ROOT=$(TOPDIR)/../../../../linux/kernel/arch/arm64/boot/dts
 LINUX_DTS=$(shell cat $(CONFIG_ROOT) | grep 'LINUX_DTB=' | sed 's/LINUX_DTB=//g').dts
 M4_DTS_DATA_TEMP1=$(shell sed -n -e '/rproc_0_reserved:/,/reg/p' $(DTS_CONFIG_ROOT)/$(LINUX_DTS) | sed -n -e '/reg/p')
-M4_DTS_DATA_TEMP2=$(shell echo "$(M4_DTS_DATA_TEMP1)"  | cut -d "x" -f 2 | cut -c 1-8)
+M4_DTS_DATA_TEMP2=$(shell echo "$(M4_DTS_DATA_TEMP1)" | sed -n 's/^.*\([0-9a-fA-F]\{8\}\).*$$/\1/p' )
 M4_MEM=0x$(M4_DTS_DATA_TEMP2)
+
 
 CFLAGS += -DM4_RUN_ADDRESS=$(M4_MEM)
 
