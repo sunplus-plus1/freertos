@@ -80,11 +80,6 @@ $(BUILD_DIR)/$(BIN) : $(OBJ_FILES)
 	$(CC) -ffunction-sections -fdata-sections $(CFLAGS) $(LDFLAGS) $+ -o $(BUILD_DIR)/$(TARGET)
 	$(PREFIX)objdump -d -S $(BUILD_DIR)/$(TARGET) > $(BUILD_DIR)/$(TARGET).dis
 	$(PREFIX)objcopy -O binary -S $(BUILD_DIR)/$(TARGET) $@
-	@rm -rf bin/zmem*
-	@hexdump -v -e '1/4 "%08x\n"' $@ > temp.hex
-	@python ../../../../ipack/tools/bin2zmem/bin2zmem_ddr4.py temp.hex $(M4_MEM)
-	@rm -rf temp.hex
-	@cd bin && tar caf zmem.tar.bz2 zmem*.hex && ls -lh zmem.tar.bz2
 
 %.d: %.c
 	@set -e; rm -f $@; \
