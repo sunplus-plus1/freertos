@@ -6,10 +6,11 @@
 typedef unsigned int u32;
 typedef volatile u32 * reg;
 
-#define REG(g, i)	((reg)0xf8000000)[g * 32 + i]
-#define STAMP		REG(0, 0)
-#define UART0		REG(18, 0)
-#define UART1		REG(19, 0)
+#define REG(g, i)		((reg)0xf8000000)[g * 32 + i]
+#define REG_AO(g, i)	((reg)0xf8800000)[g * 32 + i]
+#define STAMP		REG_AO(0, 0)
+#define UART_0		REG_AO(50, 0)
+#define UART_1		REG_AO(51, 0)
 #define MBOX7		REG(255, 31)	// cpu0 to cpu2 direct reg07
 
 typedef struct UART_t {
@@ -26,7 +27,7 @@ typedef struct UART_t {
     unsigned int thr; /* rx threshold */
 	unsigned int clk_src;
 } UART_t;
-#define UART_REG ((volatile UART_t *)&UART1)
+#define UART_REG ((volatile UART_t *)&UART_1)
 
 #define UART_LSR_TX_RDY     (1 << 0)
 #define UART_LSR_RX_RDY     (1 << 1)
