@@ -77,7 +77,7 @@ int _write(int file, char *buf, int len)
     int todo;
 
     for (todo = 0; todo < len; todo++){
-        UART_putc(*buf++);
+        UART_putc_nl(*(buf+todo));
     }
     return len;
 }

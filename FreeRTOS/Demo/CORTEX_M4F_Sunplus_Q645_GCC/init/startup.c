@@ -190,11 +190,20 @@ void _start(void)
 	STAMP = __SMLSDX((u32)_sbss, (u32)_ebss, (u32)_estack);
 	printf("PASS\n\n");
 #endif
+#if 1// test FPU
+	SCB->CPACR |= 0x00F00000;
+	printf("TEST FPU   :");
+	float a = 1.23f * 2.34f;
+	a = a * 10000;
+	printf("1.23 * 2.34 * 10000= %d\n", (int)a);
+	printf("PASS\n\n");
+#endif
 #if 1 // test mbox7
 	NVIC_SetVector(IRQ_TEST, (u32)isr_mbox7); // Set IRQ Handler
 	NVIC_EnableIRQ(IRQ_TEST); // Enable Interrupt
 	MBOX7 = IRQ_TEST; // Trigger
 #endif
+
     main(0, 0);
     exit(0);
 }
