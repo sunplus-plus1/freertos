@@ -3,12 +3,16 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "sp645_hal_def.h"
 #include "sp645_hal.h"
 #include "sp645_hal_cortex.h"
 #include "sp645_hal_timer.h"
 #include "sp645_hal_stc.h"
+#include "sp645_hal_gpio.h"
+#include "sp645_hal_uart.h"
+//#include "sp645_hal_exti.h"
 #include "trace.h"
 
 
@@ -25,8 +29,8 @@
 
 /* Uncomment the line below to expanse the "assert_param" macro in the
    Standard Peripheral Library drivers code */
-   
-//#define USE_FULL_ASSERT    1 
+
+//#define USE_FULL_ASSERT    1
 
 #ifdef  USE_FULL_ASSERT
 /**

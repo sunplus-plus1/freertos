@@ -245,18 +245,18 @@ static void prvTaskExitError( void )
 void vPortSVCHandler( void )
 {
     __asm volatile (
-        "	ldr	r3, pxCurrentTCBConst2		\n"/* Restore the context. */
-        "	ldr r1, [r3]					\n"/* Use pxCurrentTCBConst to get the pxCurrentTCB address. */
-        "	ldr r0, [r1]					\n"/* The first item in pxCurrentTCB is the task top of stack. */
-        "	ldmia r0!, {r4-r11, r14}		\n"/* Pop the registers that are not automatically saved on exception entry and the critical nesting count. */
-        "	msr psp, r0						\n"/* Restore the task stack pointer. */
-        "	isb								\n"
-        "	mov r0, #0 						\n"
-        "	msr	basepri, r0					\n"
-        "	bx r14							\n"
-        "									\n"
-        "	.align 4						\n"
-        "pxCurrentTCBConst2: .word pxCurrentTCB				\n"
+        "	ldr	r3, pxCurrentTCBConst2	\n"/* Restore the context. */
+        "	ldr r1, [r3]			\n"/* Use pxCurrentTCBConst to get the pxCurrentTCB address. */
+        "	ldr r0, [r1]			\n"/* The first item in pxCurrentTCB is the task top of stack. */
+        "	ldmia r0!, {r4-r11, r14}	\n"/* Pop the registers that are not automatically saved on exception entry and the critical nesting count. */
+        "	msr psp, r0			\n"/* Restore the task stack pointer. */
+        "	isb				\n"
+        "	mov r0, #0 			\n"
+        "	msr	basepri, r0		\n"
+        "	bx r14				\n"
+        "					\n"
+        "	.align 4			\n"
+        "pxCurrentTCBConst2: .word pxCurrentTCB	\n"
         );
 }
 /*-----------------------------------------------------------*/
@@ -731,7 +731,7 @@ static void vPortEnableVFP( void )
 
         /* Obtain the number of the currently executing interrupt. */
         __asm volatile ( "mrs %0, ipsr" : "=r" ( ulCurrentInterrupt )::"memory" );
-
+	trace_info("!!!!!!!! %d\n", ulCurrentInterrupt);
         /* Is the interrupt number a user defined interrupt? */
         if( ulCurrentInterrupt >= portFIRST_USER_INTERRUPT_NUMBER )
         {
@@ -761,6 +761,7 @@ static void vPortEnableVFP( void )
              * The following links provide detailed information:
              * https://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html
              * https://www.FreeRTOS.org/FAQHelp.html */
+             trace_info("!!!!!!!! %d %d\n", ucCurrentPriority, ucMaxSysCallPriority);
             configASSERT( ucCurrentPriority >= ucMaxSysCallPriority );
         }
 

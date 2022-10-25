@@ -36,9 +36,11 @@ source_FILES += $(SP645_LIB)/source/sp645_hal.c
 source_FILES += $(SP645_LIB)/source/sp645_hal_cortex.c
 source_FILES += $(SP645_LIB)/source/sp645_hal_stc.c
 source_FILES += $(SP645_LIB)/source/sp645_hal_timer.c
-
+source_FILES += $(SP645_LIB)/source/sp645_hal_gpio.c
+source_FILES += $(SP645_LIB)/source/sp645_hal_uart.c
 # src C file
-source_FILES += $(USER_SRC_PATH)/source/main.c
+#source_FILES += $(USER_SRC_PATH)/source/main.c
+source_FILES += $(USER_SRC_PATH)/source/sp645_uart.c
 source_FILES += $(USER_SRC_PATH)/source/sp645_it.c
 source_FILES += $(USER_SRC_PATH)/source/main_blinky.c
 source_FILES += $(USER_SRC_PATH)/source/trace.c
@@ -80,12 +82,16 @@ ifeq ($(DEBUG), 1)
 else
     CFLAGS += -O3
 endif
-    CFLAGS += -fstrict-aliasing -Wstrict-aliasing -Wno-error=address-of-packed-member
+CFLAGS += -fstrict-aliasing -Wstrict-aliasing -Wno-error=address-of-packed-member
 
 OBJ_FILES := $(source_FILES:%.c=$(BUILD_DIR)/%.o)
+OBJ_FILES += $(BUILD_DIR)/main.o
 
 CPPFLAGS += $(DEFINES)
 CFLAGS += $(include_DIRS)
+
+DATE_COMPILE = $(shell date --rfc-3339=second)
+#CFLAGS += -DDATE_COMPILE='"$(DATE_COMPILE)"'
 
 .PHONY: clean
 
@@ -111,6 +117,10 @@ endif
 includeS := $(source_FILES:%.c=$(BUILD_DIR)/%.d)
 -include $(includeS)
 
+${BUILD_DIR}/main.o : $(USER_SRC_PATH)/source/main.c Makefile
+	-mkdir -p $(@D)
+#	data_compile=`date --rfc-3339=second`;
+	$(CC) -DDATE_COMPILE='"$(DATE_COMPILE)"' $(CFLAGS) $(CPPFLAGS) -MMD -c $< -o $@
 
 ${BUILD_DIR}/%.o : %.c Makefile
 	-mkdir -p $(@D)

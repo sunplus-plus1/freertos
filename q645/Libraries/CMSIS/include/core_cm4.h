@@ -67,6 +67,7 @@
 #define __CM4_CMSIS_VERSION_SUB   (__CM_CMSIS_VERSION_SUB)               /*!< \deprecated [15:0]  CMSIS HAL sub version */
 #define __CM4_CMSIS_VERSION       ((__CM4_CMSIS_VERSION_MAIN << 16U) | \
                                     __CM4_CMSIS_VERSION_SUB           )  /*!< \deprecated CMSIS HAL version number */
+
 #define __CORTEX_M                (4U)                                   /*!< Cortex-M Core */
 
 /** __FPU_USED indicates whether an FPU is used or not.
@@ -101,7 +102,7 @@
     #if defined (__FPU_PRESENT) && (__FPU_PRESENT == 1U)
       #define __FPU_USED       1U
     #else
-//      #error "Compiler generates FPU instructions for a device without an FPU (check __FPU_PRESENT)"
+      #error "Compiler generates FPU instructions for a device without an FPU (check __FPU_PRESENT)"
       #define __FPU_USED       0U
     #endif
   #else
@@ -178,7 +179,6 @@
 
 /* check device defines and use defaults */
 #if defined __CHECK_DEVICE_DEFINES
-#error "abcd"
   #ifndef __CM4_REV
     #define __CM4_REV               0x0000U
     #warning "__CM4_REV not defined in device header file; using default!"
@@ -230,6 +230,7 @@
 #define     __IM     volatile const      /*! Defines 'read only' structure member permissions */
 #define     __OM     volatile            /*! Defines 'write only' structure member permissions */
 #define     __IOM    volatile            /*! Defines 'read / write' structure member permissions */
+#define     RESERVED(N, T) T RESERVED##N;    // placeholder struct members used for "reserved" areas
 
 /*@} end of group Cortex_M4 */
 

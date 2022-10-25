@@ -26,6 +26,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include "trace.h"
 
 /* Defining MPU_WRAPPERS_INCLUDED_FROM_API_FILE prevents task.h from redefining
  * all the API functions to use the MPU wrappers.  That should only be done when
@@ -1161,16 +1162,16 @@ BaseType_t xQueueGiveFromISR( QueueHandle_t xQueue,
      * post). */
 
     configASSERT( pxQueue );
-
+	trace_info("111111111111111\n");
     /* xQueueGenericSendFromISR() should be used instead of xQueueGiveFromISR()
      * if the item size is not 0. */
     configASSERT( pxQueue->uxItemSize == 0 );
-
+	trace_info("22222222222222\n");
     /* Normally a mutex would not be given from an interrupt, especially if
      * there is a mutex holder, as priority inheritance makes no sense for an
      * interrupts, only tasks. */
     configASSERT( !( ( pxQueue->uxQueueType == queueQUEUE_IS_MUTEX ) && ( pxQueue->u.xSemaphore.xMutexHolder != NULL ) ) );
-
+	trace_info("333333333333333\n");
     /* RTOS ports that support interrupt nesting have the concept of a maximum
      * system call (or maximum API call) interrupt priority.  Interrupts that are
      * above the maximum system call priority are kept permanently enabled, even
@@ -1186,7 +1187,7 @@ BaseType_t xQueueGiveFromISR( QueueHandle_t xQueue,
      * More information (albeit Cortex-M specific) is provided on the following
      * link: https://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html */
     portASSERT_IF_INTERRUPT_PRIORITY_INVALID();
-
+	trace_info("44444444444444444444\n");
     uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
     {
         const UBaseType_t uxMessagesWaiting = pxQueue->uxMessagesWaiting;

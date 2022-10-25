@@ -7,12 +7,9 @@
 
 #define __CM4_REV                 0x0001U  /*!< Core revision r0p1                            */
 #define __MPU_PRESENT             0U       /*!< STM32F303xC devices provide an MPU */
-#define __NVIC_PRIO_BITS          4U       /*!< STM32F303xC devices use 4 Bits for the Priority Levels */
+#define __NVIC_PRIO_BITS          8U       /*!< SUNPLUS devices use 8 Bits for the Priority Levels */
 #define __Vendor_SysTickConfig    0U       /*!< Set to 1 if different SysTick Config is used */
 #define __FPU_PRESENT             1U       /*!< STM32F303xC devices provide an FPU */
-
-#define RESERVED(N, T) T RESERVED##N;
-
 
 typedef enum
 {
@@ -35,7 +32,7 @@ typedef enum
   EXTI5_IRQn                       = 5,      /*!< EXTI Line5 Interrupt                          */
   EXTI6_IRQn                       = 6,      /*!< EXTI Line6 Interrupt                          */
   EXTI7_IRQn                       = 7,      /*!< EXTI Line7 Interrupt                          */
-  I2C_MASTER0_IRQ                  = 8,      /*!< I2C 0  interrupt                              */ 
+  I2C_MASTER0_IRQ                  = 8,      /*!< I2C 0  interrupt                              */
   IPC_CA552CM4_INT0_IRQn           = 9,      /*!< Mailbox CA55 notify to CM4 interrupt 0        */
   IPC_CA552CM4_INT1_IRQn           = 10,      /*!< Mailbox CA55 notify to CM4 interrupt 1       */
   CPIO_LEFT_IRQn                   = 11,      /*!< CPIO Left side interrupt                     */
@@ -43,7 +40,7 @@ typedef enum
   IPC_CA552CM4_INT2_IRQn           = 13,      /*!< Mailbox CA55 notify to CM4 interrupt 2       */
   IPC_CA552CM4_INT3_IRQn           = 14,      /*!< Mailbox CA55 notify to CM4 interrupt 3       */
   SDIO_IRQn                        = 15,      /*!< SDIO Interrupt                               */
-  CARD_IRQn                        = 16,      /*!< SD Card interrupt                            */ 
+  CARD_IRQn                        = 16,      /*!< SD Card interrupt                            */
   EMMC_IRQn                        = 17,      /*!< EMMC Interrupt                               */
   SPI_FLASH_IRQn                   = 18,      /*!< SPI NOR Flash Interrupt                      */
   SPI_COMBO0_DMA_W_IRQn            = 19,      /*!< SPI Combo0 DMA write interrupt               */
@@ -121,18 +118,18 @@ typedef enum
   VCL_INTR3_IRQn                   = 91,      /*!< VCL ISP Interrupt3                           */
   VCL_INTR4_IRQn                   = 92,      /*!< VCL ISP Interrupt4                           */
   VCL_INTR5_IRQn                   = 93,      /*!< VCL ISP Interrupt5                           */
-  I2C_MASTER1_IRQ                  = 94,      /*!< I2C 1  interrupt                             */ 
-  I2C_MASTER2_IRQ                  = 95,      /*!< I2C 2  interrupt                             */ 
-  I2C_MASTER3_IRQ                  = 96,      /*!< I2C 3  interrupt                             */ 
-  I2C_MASTER4_IRQ                  = 97,      /*!< I2C 4  interrupt                             */ 
-  I2C_MASTER5_IRQ                  = 98,      /*!< I2C 5  interrupt                             */ 
-  RTC_PREIODIC_IRQ                 = 99,      /*!< RTC Prediodic interrupt                      */ 
-  AUD_LOSD_IRQ                     = 100,      /*!< Audio LOSD interrupt                        */ 
-  AUD_FIFO_IRQ                     = 101,      /*!< Audio FIFO interrupt                        */ 
-  AUD_TWS_LATCH_IRQ                = 102,      /*!< Audio TWS Latch interrupt                   */ 
-  AUD_TWS_SAMPLE_IRQ               = 103,      /*!< Audio TWS Sample interrupt                  */ 
-  RESERVED_104                     = 104,      /*!< RESERVED interrupt                          */ 
-  RESERVED_105                     = 105,      /*!< RESERVED interrupt                          */ 
+  I2C_MASTER1_IRQ                  = 94,      /*!< I2C 1  interrupt                             */
+  I2C_MASTER2_IRQ                  = 95,      /*!< I2C 2  interrupt                             */
+  I2C_MASTER3_IRQ                  = 96,      /*!< I2C 3  interrupt                             */
+  I2C_MASTER4_IRQ                  = 97,      /*!< I2C 4  interrupt                             */
+  I2C_MASTER5_IRQ                  = 98,      /*!< I2C 5  interrupt                             */
+  RTC_PREIODIC_IRQ                 = 99,      /*!< RTC Prediodic interrupt                      */
+  AUD_LOSD_IRQ                     = 100,      /*!< Audio LOSD interrupt                        */
+  AUD_FIFO_IRQ                     = 101,      /*!< Audio FIFO interrupt                        */
+  AUD_TWS_LATCH_IRQ                = 102,      /*!< Audio TWS Latch interrupt                   */
+  AUD_TWS_SAMPLE_IRQ               = 103,      /*!< Audio TWS Sample interrupt                  */
+  RESERVED_104                     = 104,      /*!< RESERVED interrupt                          */
+  RESERVED_105                     = 105,      /*!< RESERVED interrupt                          */
   SPI_COMBO2_DMA_W_IRQn            = 106,       /*!< SPI Combo2 DMA write interrupt             */
   SPI_MASTER2_IRQn                 = 107,       /*!< SPI Combo2 Master interrupt                */
   SPI_SLAVE2_IRQn                  = 108,       /*!< SPI Combo2 Slave interrupt                 */
@@ -379,7 +376,7 @@ typedef enum{
   PINMUX_SPI_COM4_MST,
   PINMUX_SPI_COM4_SLV,
   PINMUX_SPI_COM5_MST,
-  PINMUX_SPI_COM5_SLV, 
+  PINMUX_SPI_COM5_SLV,
   /*G1.3*/
   PINMUX_I2C_0,
   PINMUX_I2C_1,
@@ -404,7 +401,7 @@ typedef enum{
   PINMUX_UAHSM,
   PINMUX_UAHSM_EXT,
   PINMUX_CPIOL_I2C,
-  PINMUX_CPIOR_I2C, 
+  PINMUX_CPIOR_I2C,
   PINMUX_GPIO_INT0=75|PINMUX_DFMP_3BIT,
    /*G1.5*/
   PINMUX_GPIO_INT1=80|PINMUX_DFMP_3BIT,
@@ -422,10 +419,10 @@ typedef enum{
   PINMUX_U3PHY1_DEBUG,
   PINMUX_PROBE_PORT
 }PINMUX_Type;
-  
-  
-  
-  
+
+
+
+
 /** Macro to write new value to the bits in register */
 
 #define SET_BIT(REG, BIT)     ((REG) |= (BIT))
@@ -520,13 +517,13 @@ typedef struct {
 typedef struct{
 	__IOM uint32_t stc_15_0;				 /*!< \brief  standard time clock counter, 0~15 bit */
 	__IOM uint32_t stc_31_16;				 /*!< \brief  standard time clock counter, 16~31 bit */
-	__IOM uint32_t stc_47_32;	
+	__IOM uint32_t stc_47_32;
 	__IOM uint32_t stc_63_48;
 	__IOM uint32_t stc_64;					 /*!< \brief  standard time clock counter, the MSB 64 bit, when write the bit ,clear the stc counter at once */
-	__IOM uint32_t stc_prescale_val;		
-	__IOM uint32_t stc_config;	
+	__IOM uint32_t stc_prescale_val;
+	__IOM uint32_t stc_config;
 	RESERVED(0[19], uint32_t)
-	__IOM uint32_t stcl_15_0;	
+	__IOM uint32_t stcl_15_0;
 	__IOM uint32_t stcl_31_16;
 	__IOM uint32_t stcl_32;
 	__IOM uint32_t atc_15_0;
@@ -633,7 +630,7 @@ typedef struct
 } GDMA_TypeDef;
 
 
-typedef struct 
+typedef struct
 {
     __IOM uint32_t control;           /*!< \brief timer control register for >*/
     __IOM uint32_t counter_val;       /*!< \brief 16-bit counter , it down to 0, the timer will generate the interrupt*/
@@ -655,14 +652,14 @@ typedef struct {
 	__IOM uint32_t C2M_over_write_monitor_status;
 	RESERVED(0, uint32_t);
 	__IOM uint32_t C2M_normal_data[20];
-	__IOM uint32_t C2M_direct_data[8];	
-	
+	__IOM uint32_t C2M_direct_data[8];
+
 	__IOM uint32_t M2C_normal_trigger;		//CM4 tiger the INT to CA55
 	__IOM uint32_t M2C_write_monitor_status;
 	__IOM uint32_t M2C_over_write_monitor_status;
 	RESERVED(1, uint32_t);
 	__IOM uint32_t M2C_normal_data[20];
-	__IOM uint32_t M2C_direct_data[8];	
+	__IOM uint32_t M2C_direct_data[8];
 }IPCC_Typedef;
 
 #define STATIC_ASSERT(b) extern int _static_assert[b ? 1 : -1]
@@ -703,10 +700,10 @@ typedef struct {
       __IOM uint32_t pwm_mode;
    };
     struct _PWM_DU_REG_ pwm_chx_cfg[4];
-    __IOM uint32_t reserve_1[10];
+    __IOM uint32_t reserve_1[11];
     __IOM uint32_t pwm_version;
     struct _PWM_DD_REG_ pwm_dd_ctrl[4];
-    __IOM uint32_t reserve_2[12];
+    __IOM uint32_t reserve_2[11];
 }PWM_TypeDef;
 
 #define REG_BASE                     0xF8000000
@@ -833,15 +830,23 @@ typedef struct {
 #define UART0_BASE      RF_GRP(18, 0)
 #define UART1_BASE      RF_GRP(19, 0)
 #define UART2_BASE      RF_GRP(16, 0)
-#define UART3_BASE      RF_GRP(17, 0)
-#define UART4_BASE      RF_GRP(271, 0)
-
+#define UART3_BASE      RF_GRP(135, 0)
+#define UART4_BASE      RF_GRP(17, 0)
+#define UART6_BASE      RF_GRP(261, 0)
+#define UART7_BASE      RF_GRP(262, 0)
+#define UART8_BASE      RF_GRP(263, 0)
 
 #define SP_UART0        ((UART_CTRL_Type *)UART0_BASE)
 #define SP_UART1        ((UART_CTRL_Type *)UART1_BASE)
 #define SP_UART2        ((UART_CTRL_Type *)UART2_BASE)
 #define SP_UART3        ((UART_CTRL_Type *)UART3_BASE)
 #define SP_UART4        ((UART_CTRL_Type *)UART4_BASE)
+
+#define IS_UART_INSTANCE(__INSTANCE__) (((__INSTANCE__) == SP_UART0) || \
+                                    ((__INSTANCE__) == SP_UART1) || \
+                                    ((__INSTANCE__) == SP_UART2) || \
+                                    ((__INSTANCE__) == SP_UART3)  || \
+                                    ((__INSTANCE__) == SP_UART4))
 
 /*
 UART LCR register BIT
@@ -950,8 +955,8 @@ UART LCR register BIT
 #define SPI_SW_RST             (1<<1)
 #define SPI_START_FD           (1<<0)
 
-#define SPI_TOTAL_SIZE         TOTAL_LENGTH(0xFF)     
-#define SPI_TX_SIZE            TX_LENGTH(0xFF) 
+#define SPI_TOTAL_SIZE         TOTAL_LENGTH(0xFF)
+#define SPI_TX_SIZE            TX_LENGTH(0xFF)
 
 /******************************************************************************/
 /*                        I2C module                                          */
@@ -977,92 +982,119 @@ UART LCR register BIT
 /* gpio register */
 
 #define GPIO_FIRST(X)                (RF_GRP(101, (25+X)))
-#define GPIO_MASTER(X)               (RF_GRP(6, (0+X)))
-#define GPIO_OE(X)                   (RF_GRP(6, (8+X)))
-#define GPIO_OUT(X)                  (RF_GRP(6, (16+X)))
-#define GPIO_IN(X)                   (RF_GRP(6, (24+X)))
-#define GPIO_I_INV(X)                (RF_GRP(7, (0+X)))
-#define GPIO_O_INV(X)                (RF_GRP(7, (8+X)))
-#define GPIO_OD(X)                   (RF_GRP(7, (16+X)))
+#define GPIO_MASTER(X)               (RF_GRP(5, (0+X)))
+#define GPIO_OE(X)                   (RF_GRP(5, (13+X)))
+#define GPIO_OUT(X)                  (RF_GRP(5, (26+X)))
+#define GPIO_IN(X)                   (RF_GRP(6, (7+X)))
+#define GPIO_I_INV(X)                (RF_GRP(6, (15+X)))
+#define GPIO_O_INV(X)                (RF_GRP(6, (22+X)))
+#define GPIO_OD(X)                   (RF_GRP(7, (9+X)))
 
-#define GPIO_P0_00                   0
-#define GPIO_P0_01                   1
-#define GPIO_P0_02                   2
-#define GPIO_P0_03                   3
-#define GPIO_P0_04                   4
-#define GPIO_P0_05                   5
-#define GPIO_P0_06                   6
-#define GPIO_P0_07                   7
-#define GPIO_P1_00                   8
-#define GPIO_P1_01                   9
-#define GPIO_P1_02                   10
-#define GPIO_P1_03                   11
-#define GPIO_P1_04                   12
-#define GPIO_P1_05                   13
-#define GPIO_P1_06                   14
-#define GPIO_P1_07                   15
-#define GPIO_P2_00                   16
-#define GPIO_P2_01                   17
-#define GPIO_P2_02                   18
-#define GPIO_P2_03                   19
-#define GPIO_P2_04                   20
-#define GPIO_P2_05                   21
-#define GPIO_P2_06                   22
-#define GPIO_P2_07                   23
-#define GPIO_P3_00                   24
-#define GPIO_P3_01                   25
-#define GPIO_P3_02                   26
-#define GPIO_P3_03                   27
-#define GPIO_P3_04                   28
-#define GPIO_P3_05                   29
-#define GPIO_P3_06                   30
-#define GPIO_P3_07                   31
-#define GPIO_P4_00                   32
-#define GPIO_P4_01                   33
-#define GPIO_P4_02                   34
-#define GPIO_P4_03                   35
-#define GPIO_P4_04                   36
-#define GPIO_P4_05                   37
-#define GPIO_P4_06                   38
-#define GPIO_P4_07                   39
-#define GPIO_P5_00                   40
-#define GPIO_P5_01                   41
-#define GPIO_P5_02                   42
-#define GPIO_P5_03                   43
-#define GPIO_P5_04                   44
-#define GPIO_P5_05                   45
-#define GPIO_P5_06                   46
-#define GPIO_P5_07                   47
-#define GPIO_P6_00                   48
-#define GPIO_P6_01                   49
-#define GPIO_P6_02                   50
-#define GPIO_P6_03                   51
-#define GPIO_P6_04                   52
-#define GPIO_P6_05                   53
-#define GPIO_P6_06                   54
-#define GPIO_P6_07                   55
-#define GPIO_P7_00                   56
-#define GPIO_P7_01                   57
-#define GPIO_P7_02                   58
-#define GPIO_P7_03                   59
-#define GPIO_P7_04                   60
-#define GPIO_P7_05                   61
-#define GPIO_P7_06                   62
-#define GPIO_P7_07                   63
-#define GPIO_P8_00                   64
-#define GPIO_P8_01                   65
-#define GPIO_P8_02                   66
-#define GPIO_P8_03                   67
-#define GPIO_P8_04                   68
-#define GPIO_P8_05                   69
-#define GPIO_P8_06                   70
-#define GPIO_P8_07                   71
+#define GPIO_00                    0
+#define GPIO_01                    1
+#define GPIO_02                    2
+#define GPIO_03                    3
+#define GPIO_04                    4
+#define GPIO_05                    5
+#define GPIO_06                    6
+#define GPIO_07                    7
+#define GPIO_08                    8
+#define GPIO_09                    9
+#define GPIO_10                   10
+#define GPIO_11                   11
+#define GPIO_12                   12
+#define GPIO_13                   13
+#define GPIO_14                   14
+#define GPIO_15                   15
+#define GPIO_16                   16
+#define GPIO_17                   17
+#define GPIO_18                   18
+#define GPIO_19                   19
+#define GPIO_20                   20
+#define GPIO_21                   21
+#define GPIO_22                   22
+#define GPIO_23                   23
+#define GPIO_24                   24
+#define GPIO_25                   25
+#define GPIO_26                   26
+#define GPIO_27                   27
+#define GPIO_28                   28
+#define GPIO_29                   29
+#define GPIO_30                   30
+#define GPIO_31                   31
+#define GPIO_32                   32
+#define GPIO_33                   33
+#define GPIO_34                   34
+#define GPIO_35                   35
+#define GPIO_36                   36
+#define GPIO_37                   37
+#define GPIO_38                   38
+#define GPIO_39                   39
+#define GPIO_40                   40
+#define GPIO_41                   41
+#define GPIO_42                   42
+#define GPIO_43                   43
+#define GPIO_44                   44
+#define GPIO_45                   45
+#define GPIO_46                   46
+#define GPIO_47                   47
+#define GPIO_48                   48
+#define GPIO_49                   49
+#define GPIO_50                   50
+#define GPIO_51                   51
+#define GPIO_52                   52
+#define GPIO_53                   53
+#define GPIO_54                   54
+#define GPIO_55                   55
+#define GPIO_56                   56
+#define GPIO_57                   57
+#define GPIO_58                   58
+#define GPIO_59                   59
+#define GPIO_60                   60
+#define GPIO_61                   61
+#define GPIO_62                   62
+#define GPIO_63                   63
+#define GPIO_64                   64
+#define GPIO_65                   65
+#define GPIO_66                   66
+#define GPIO_67                   67
+#define GPIO_68                   68
+#define GPIO_69                   69
+#define GPIO_70                   70
+#define GPIO_71                   71
+#define GPIO_72                   72
+#define GPIO_73                   73
+#define GPIO_74                   74
+#define GPIO_75                   75
+#define GPIO_76                   76
+#define GPIO_77                   77
+#define GPIO_78                   78
+#define GPIO_79                   79
+#define GPIO_80                   80
+#define GPIO_81                   81
+#define GPIO_82                   83
+#define GPIO_83                   83
+#define GPIO_84                   84
+#define GPIO_85                   85
+#define GPIO_86                   86
+#define GPIO_87                   87
+#define GPIO_88                   88
+#define GPIO_89                   89
+#define GPIO_90                   90
+#define GPIO_91                   91
+#define GPIO_92                   92
+#define GPIO_93                   93
+#define GPIO_94                   94
+#define GPIO_95                   95
+#define GPIO_96                   96
+#define GPIO_97                   97
+#define GPIO_98                   98
+#define GPIO_99                   99
+#define GPIO_100                  100
 
-#define IS_GPIO_PIN(pin)             (((pin) >= GPIO_P0_00) && ((pin) <= GPIO_P8_07))
-#define IS_PINMUX_PIN(pin)           (((pin) >= GPIO_P0_00) && ((pin) <= GPIO_P8_07))
-#define IS_VALID_PINMUX(pin)         (((pin) >= GPIO_P0_00) && ((pin) <= GPIO_P8_07))
-#define GPIO_TO_PINMUX(x)            IS_PINMUX_PIN(x)?(x):-1
-
+#define IS_GPIO_PIN(pin)             (((pin) >= GPIO_00) && ((pin) <= GPIO_100))
+#define IS_PINMUX_PIN(pin)           (((pin) >= GPIO_00) && ((pin) <= GPIO_100))
+#define IS_VALID_PINMUX(pin)         (((pin) >= GPIO_00) && ((pin) <= GPIO_100))
 
 
 /******************************************************************************/
@@ -1073,7 +1105,7 @@ UART LCR register BIT
 /********************  Bit definition for IPC Mailbox register  ***************/
 
 
-#define IS_IPCC_INSTANCE(INSTANCE)       (((INSTANCE) == IPC_MAILBOX))  
+#define IS_IPCC_INSTANCE(INSTANCE)       (((INSTANCE) == IPC_MAILBOX))
 
 
 #define NORMAL_LOCK_DATA0_Pos	(4)

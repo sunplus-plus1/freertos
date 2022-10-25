@@ -53,6 +53,8 @@
 #define TRACE_LEVEL_FATAL      1
 #define TRACE_LEVEL_SILENT     0
 
+//#undef TRACE_LEVEL
+//#define TRACE_LEVEL TRACE_LEVEL_ERROR
 /* By default, all traces are output except the debug one. */
 #ifndef TRACE_LEVEL
 #define TRACE_LEVEL TRACE_LEVEL_INFO
