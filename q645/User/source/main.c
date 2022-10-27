@@ -122,6 +122,20 @@ void vTaskCode1(void *pArg)
 {
 	trace_info("entry vTaskCode1.\n");
 
+	IRQn_Type irq1 = IPC_CA552CM4_INT7_IRQn;
+	IRQn_Type irq2 = IPC_CA552CM4_INT6_IRQn;
+	int pri;
+
+	NVIC_SetVector(irq1, (u32)vMailboxISR1); // Set IRQ Handler
+	NVIC_SetPriority(irq1, 0xE0);
+	pri = NVIC_GetPriority(irq1);
+	trace_info("@@@@@@@@@@pri %d.\n", pri);
+	NVIC_EnableIRQ(irq1); // Enable Interrupt
+
+	NVIC_SetVector(irq2, (u32)vMailboxISR2);
+	NVIC_SetPriority(irq2, 0xE0);
+	NVIC_EnableIRQ(irq2);
+
 	vTaskDelay(pdMS_TO_TICKS(2));
 
 	xBinarySemaphore1 = xSemaphoreCreateBinary();
@@ -203,24 +217,28 @@ void vTaskCodeGPIO(void *pArg)
 #endif
 
 #ifdef UART_TEST
-
 void vTaskCodeTx(void *pArg)
 {
 	uint8_t *temp_buf;
 	size_t i, j;
+	uint8_t flag = 0;
 	uint32_t trans_size;
 
 	trace_info("entry vTaskCodeTx.\n");
+
 	trans_size = 1024;
+	temp_buf = malloc(trans_size);
 
-	temp_buf = malloc(1024);
-
-	for(i = 0; i < (1024 / 8) + 1; i++) {
+	for(i = 0; i < (trans_size / 8) + 1; i++) {
 		for(j = 0; j < 8; j++)
 			temp_buf[i * 8 + j] = 0x30 + j;
 	}
 
-	vUartStartTx(UART1_INDEX, temp_buf, 1024);//address / size
+	vUartStartTx(UART2_INDEX, temp_buf, trans_size, &flag);
+	while(!flag) {
+		free(temp_buf);
+		vTaskDelete(NULL);
+	}
 }
 
 void vTaskCodeRx(void *pArg)
@@ -230,24 +248,12 @@ void vTaskCodeRx(void *pArg)
 
 	volatile int ret;
 
-	trace_info("entry vTaskCodeRx.\n");
+	trace_info("entry vTaskCodeRx().\n");
 
-	temp_buf1 = malloc(1024);
-	memset(temp_buf1, 0x00, 1024);
+	vUartStartRx(UART1_INDEX);
 
-	vUartStartRx(UART1_INDEX, temp_buf1, 1024);
-#if 0
-
-	vTaskDelay(pdMS_TO_TICKS(5000));
-	for (int i = 0; i < 1024 / 8; i++) {
-		trace_info("%04xh ", i * 8);
-		for(int j = 0; j < 8; j++)
-			trace_info("0x%x ", temp_buf1[i * 8 + j]);
-		trace_info("\n");
-	}
-
-#endif
 	while(1) {
+		/* return 0 -> data available */
 		ret = vUartOutput(UART1_INDEX);
 		if(ret != -1) {
 			printf("get %c\n", ret);
@@ -264,23 +270,9 @@ int main ()
 	HAL_Init(); //STC init
 	prvTimerInit();
 	vUartInit(UART1_INDEX, 115200, 0x20);
-	//vUartInit(UART2_INDEX, 115200, 0x20);
+	vUartInit(UART2_INDEX, 115200, 0x20);
 
 #ifdef IRQ_TEST
-	IRQn_Type irq1 = IPC_CA552CM4_INT7_IRQn;
-	IRQn_Type irq2 = IPC_CA552CM4_INT6_IRQn;
-	int pri;
-
-	NVIC_SetVector(irq1, (u32)vMailboxISR1); // Set IRQ Handler
-	NVIC_SetPriority(irq1, 0xE0);
-	pri = NVIC_GetPriority(irq1);
-	trace_info("@@@@@@@@@@pri %d.\n", pri);
-	NVIC_EnableIRQ(irq1); // Enable Interrupt
-
-	NVIC_SetVector(irq2, (u32)vMailboxISR2);
-	NVIC_SetPriority(irq2, 0xE0);
-	NVIC_EnableIRQ(irq2);
-
 	xTaskCreate(vTaskCode1, "Task1", TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY+1, NULL);
 	xTaskCreate(vTaskCode2, "Task2", TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL);
 #endif
@@ -291,8 +283,8 @@ int main ()
 
 #ifdef UART_TEST
 #if 1
-	xTaskCreate(vTaskCodeTx, "Uart1Tx", TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL);
-#else
+	xTaskCreate(vTaskCodeTx, "Uart1Tx", TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL);
+//#else
 	xTaskCreate(vTaskCodeRx, "Uart1Rx", TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL);
 #endif
 #endif

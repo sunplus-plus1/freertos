@@ -723,10 +723,6 @@ HAL_StatusTypeDef HAL_UART_Receive_IT(UART_HandleTypeDef *huart, uint8_t *pData,
 		huart->pRxBuffPtr = pData;
 		huart->rx_size = Size;
 		huart->rx_index = 0;
-		//huart->rx_queue.head = 1;
-		//huart->rx_queue.tail = 0;
-		//huart->rx_queue.size = Size + 1;
-		//huart->rx_queue.buf = pData;
 
 		/* start rx irq */
 		__start_rx_irq(huart);

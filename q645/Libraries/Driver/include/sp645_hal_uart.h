@@ -273,7 +273,6 @@ typedef struct __UART_HandleTypeDef
 	uint8_t*		txdma_buf;				  /* tx dma buffer,set for dma config */
 	uint8_t*		rxdma_buf;				  /* rx dma buffer,set for dma config */
   	struct circ_buf 	xmit;					  /* store txdata in dma mode  */
-	struct circ_buf 	rx_queue;
   	void (* TxCpltCallback)(struct __UART_HandleTypeDef *huart);            /*!< UART Tx Complete Callback             */
   	void (* RxCpltCallback)(struct __UART_HandleTypeDef *huart);            /*!< UART Rx Complete Callback             */
   	void (* ErrorCallback)(struct __UART_HandleTypeDef *huart);

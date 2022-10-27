@@ -6,11 +6,16 @@
 q645_uart_TypeDef sTemp_q645[UART_NUM];
 UART_HandleTypeDef xUARTHandle[UART_NUM];
 
-/**
-	* @brief	Tx Transfer completed callback
-	* @param	UartHandle pointer on the uart reference
-	* @retval None
-	*/
+uint8_t serial_rx_active(UART_HandleTypeDef *huart)
+{
+	return ((HAL_UART_GetState(huart) & HAL_UART_STATE_BUSY_RX) == HAL_UART_STATE_BUSY_RX);
+}
+
+/*
+ * @brief	Tx Transfer completed callback
+ * @param	UartHandle pointer on the uart reference
+ * @retval	None
+ */
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
 	uint8_t ucIndex = huart->uart_idx;
@@ -30,69 +35,28 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 		ret = HAL_UART_Transmit_IT(huart, sTemp->fixed_txbuf, copy_size);
 		if (ret)
 			trace_error("[UART%d] Tx isn't ready!\n", ucIndex);
-	}
-}
-
-#ifdef TO_FIX
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-	uint32_t offset, copy_size;
-	volatile uint8_t value, ret;
-	uint8_t ucIndex = huart->uart_idx;
-	q645_uart_TypeDef *sTemp = &sTemp_q645[ucIndex];
-	struct circ_buf *queue = &sTemp->queue;
-
-#if 0
-	offset = sTemp->rx_cnt;
-
-	if (huart->rear + 1 < huart->front) {
-
-		copy_size = ARRAY_SIZE - huart->front;
-		memcpy(sTemp->usr_buf + offset, sTemp->fixed_rxbuf + huart->front, copy_size);
-
-		offset += copy_size;
-		copy_size = huart->rear + 1;
-		memcpy(sTemp->usr_buf + offset, sTemp->fixed_rxbuf, copy_size);
-
 	} else {
-		copy_size = huart->rear + 1 - huart->front;
-		memcpy(sTemp->usr_buf + offset, sTemp->fixed_rxbuf + huart->front, copy_size);
+		*sTemp->flag_end = 1;
 	}
-	huart->front = huart->rear + 1;//empty
-	sTemp->rx_cnt += huart->rx_index;
-#else
-	while(1) {
-		trace_debug("0x%x  0x%x\n", huart->pRxBuffPtr[huart->rx_queue.head], huart->pRxBuffPtr[huart->rx_queue.tail]);
-
-		ret = _delete(&huart->rx_queue, (char *)&value);
-		if (ret)
-			break;
-		sTemp->usr_buf[sTemp->rx_cnt] = value;
-
-		trace_debug("%d  0x%x\n", sTemp->rx_cnt, sTemp->usr_buf[sTemp->rx_cnt]);
-		sTemp->rx_cnt ++;
-	}
-#endif
 }
-#endif
 
-//static TaskHandle_t xTaskRx = NULL;
+int debug_cnt = 0;
 
-uint8_t serial_rx_active(UART_HandleTypeDef *huart)
-{
-	return ((HAL_UART_GetState(huart) & HAL_UART_STATE_BUSY_RX) == HAL_UART_STATE_BUSY_RX);
-}
-int cnt111 = 0;
+/*
+ * @brief	rx Transfer completed callback
+ * @param	UartHandle pointer on the uart reference
+ * @retval	None
+ */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	uint8_t c;
 	HAL_StatusTypeDef ret = HAL_OK;
-	//BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
 	uint8_t ucIndex = huart->uart_idx;
 	q645_uart_TypeDef *sTemp = &sTemp_q645[ucIndex];
 	struct circ_buf *queue = &sTemp->queue;
 
-	cnt111 ++;
+	debug_cnt ++;
 
 	do {
 		if (serial_rx_active(huart)) {
@@ -100,7 +64,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 			break;
 		}
 
-		trace_debug("%d xxxxxxxx tail %d head %d \n", cnt111, queue->tail, queue->head);
+		trace_debug("%d xxxxxxxx tail %d head %d \n", debug_cnt, queue->tail, queue->head);
 
 		c = sTemp->recv;
 		_insert(queue, c);
@@ -112,19 +76,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 			break;
 		}
 
-		//vTaskNotifyGiveFromISR(xTaskRx, &xHigherPriorityTaskWoken);
-		//portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-
-		//TEST
-#if 0
-		_delete(queue,&c);
-		sTemp->usr_buf[sTemp->rx_cnt] = c;
-		sTemp->rx_cnt++;
-#endif
 	} while(0);
 
 }
 
+/*
+ * @brief	UART callback which is registered to NVIC
+ * @param	UartHandle pointer on the uart reference
+ * @retval	None
+ */
 void vUartCallback(void)
 {
 	uint32_t ulCurrentInterrupt;
@@ -150,6 +110,13 @@ void vUartCallback(void)
 	HAL_UART_IRQHandler(&xUARTHandle[ucIndex]);
 }
 
+/*
+ * @brief	Initialize the UART
+ * @param	Uart number in use
+ * @param	Baud rate of UART
+ * @param	Priority of UART interrupt
+ * @retval	None
+ */
 void vUartInit(uint8_t ucIndex, uint32_t ulBaudRate, uint8_t ucPriority)
 {
 	IRQn_Type irq;
@@ -192,7 +159,6 @@ void vUartInit(uint8_t ucIndex, uint32_t ulBaudRate, uint8_t ucPriority)
 	xUARTHandle[ucIndex].txgdma = NULL;
 	xUARTHandle[ucIndex].rxdma = NULL;
 
-
 	NVIC_SetVector(irq, (uint32_t)vUartCallback); // Set IRQ Handler
 	NVIC_SetPriority(irq, ucPriority); //why must set < 191, different from MAILBOX?
 	NVIC_EnableIRQ(irq); // Enable Interrupt
@@ -202,52 +168,83 @@ void vUartInit(uint8_t ucIndex, uint32_t ulBaudRate, uint8_t ucPriority)
 	trace_info("[UART%d] Init done!\n", ucIndex);
 }
 
-#if 0 // notify not work
-void vTaskRxDataPrint(void *pArg)
-{
-	uint32_t i, j;
-
-	UNUSED(pArg);
-
-	while(1) {
-		ulTaskNotifyTake(pdFALSE, portMAX_DELAY);
-		trace_info("get %c", vUartOutput());
-	}
-
-}
-#endif
-
-void vUartStartTx(uint8_t ucIndex, uint8_t *pucBuffer, uint32_t ulSize)
+/*
+ * @brief	Start the UART transmit
+ * @param	Uart number in use
+ * @param	The buffer of source data
+ * @param	The length of source data
+ * @param	The flag of the end of transmit
+ * @retval	None
+ */
+void vUartStartTx(uint8_t ucIndex, uint8_t *pucBuffer, uint32_t ulSize, uint8_t *pcFlag)
 {
 	sTemp_q645[ucIndex].tx_cnt = 0;
 	sTemp_q645[ucIndex].data_size = ulSize;
 	sTemp_q645[ucIndex].usr_buf = pucBuffer;
+	sTemp_q645[ucIndex].flag_end = pcFlag;
 
 	HAL_UART_TxCpltCallback(&xUARTHandle[ucIndex]);
+
+	trace_info("[UART%d] TX start!\n", ucIndex);
 }
 
-void vUartStartRx(uint8_t ucIndex, uint8_t *pucBuffer, uint32_t ulSize)
+/*
+ * @brief	Start the UART receive
+ * @param	Uart number in use
+ * @retval	None
+ */
+void vUartStartRx(uint8_t ucIndex)
 {
+	HAL_StatusTypeDef ret = HAL_OK;
 	struct circ_buf *queue = &sTemp_q645[ucIndex].queue;
 
-	/* Init the queue */
+	/* Init the circle buf */
 	queue->tail = 0;
 	queue->head = 1;
 	queue->buf = sTemp_q645[ucIndex].fixed_rxbuf;
 	queue->size = ARRAY_SIZE;
 
-	sTemp_q645[ucIndex].rx_cnt = 0;
-	sTemp_q645[ucIndex].usr_buf = pucBuffer;
-#ifdef TO_FIX
-	HAL_UART_Receive_IT(&xUARTHandle[ucIndex], sTemp_q645[ucIndex].fixed_rxbuf, UART_BUFFER_SIZE);
-#endif
-	HAL_UART_Receive_IT(&xUARTHandle[ucIndex], &sTemp_q645[ucIndex].recv, 1);
-
-	//xTaskCreate(vTaskRxDataPrint, "RxDataPrint", 128, NULL, tskIDLE_PRIORITY+1, &xTaskRx);
-
-	trace_info("[UART%d] RX start!\n", ucIndex);
+	ret = HAL_UART_Receive_IT(&xUARTHandle[ucIndex], &sTemp_q645[ucIndex].recv, 1);
+	if (ret) {
+		trace_error("[UART%d] RX isn't ready!\n", ucIndex);
+	} else {
+		trace_info("[UART%d] RX ready!\n", ucIndex);
+	}
 }
-int cnt = 0;
+
+/*
+ * @brief	End the UART transmit
+ * @param	Uart number in use
+ * @retval	None
+ */
+void vUartEndTx(uint8_t ucIndex)
+{
+	int ret;
+
+	ret = HAL_UART_AbortTransmit(&xUARTHandle[ucIndex]);
+	if (!ret)
+		trace_info("[UART%d] TX end!\n", ucIndex);
+}
+
+/*
+ * @brief	End the UART receive
+ * @param	Uart number in use
+ * @retval	None
+ */
+void vUartEndRx(uint8_t ucIndex)
+{
+	int ret;
+
+	ret = HAL_UART_AbortReceive(&xUARTHandle[ucIndex]);
+	if (!ret)
+		trace_info("[UART%d] RX end!\n", ucIndex);
+}
+
+/*
+ * @brief	Receive single byte data
+ * @param	Uart number in use
+ * @retval	character data received
+ */
 int vUartOutput(uint8_t ucIndex)
 {
 	uint8_t c, ret;
@@ -255,10 +252,9 @@ int vUartOutput(uint8_t ucIndex)
 
 	trace_debug("!!! tail %d head %d \n", queue->tail, queue->head);
 
+	/* Load data from circle buffer */
 	ret = _delete(queue, &c);
-
 	if(!ret) {
-		cnt++;
 		trace_debug("[UART%d] %d vUartOutput %c\n", ucIndex, cnt, c);
 		return c;
 	} else {
