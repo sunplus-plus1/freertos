@@ -16,9 +16,17 @@ __weak void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 __weak void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
+	if(huart->Instance->lsr & SP_UART_LSR_FE) {
+		trace_info("SP_UART_LSR_FE\n");
+	} else if(huart->Instance->lsr & SP_UART_LSR_OE) {
+		trace_info("SP_UART_LSR_OE\n");
+	} else if(huart->Instance->lsr & SP_UART_LSR_PE) {
+		trace_info("SP_UART_LSR_PE\n");
+	}
+
 	//trace_info("");
 	/* Prevent unused argument(s) compilation warning */
-	UNUSED(huart);
+	//UNUSED(huart);
 }
 static void UART_InitCallbacksToDefault(UART_HandleTypeDef *huart)
 {
@@ -26,43 +34,6 @@ static void UART_InitCallbacksToDefault(UART_HandleTypeDef *huart)
 	huart->RxCpltCallback = HAL_UART_RxCpltCallback;
 	huart->ErrorCallback  = HAL_UART_ErrorCallback;
 }
-
-/*********************TODO:QUEUE***************************/
-
-uint8_t is_full(struct circ_buf *queue)
-{
-	return (((queue->tail + 2) % queue->size) == queue->head);
-}
-
-uint8_t is_empty(struct circ_buf *queue)
-{
-	return (((queue->tail + 1) % queue->size) == queue->head);
-}
-
-
-uint8_t _insert(struct circ_buf *queue, uint8_t value)
-{
-	if(is_full(queue))
-		return 1;
-
-	queue->tail = (queue->tail + 1) % queue->size;
-	queue->buf[queue->tail] = value;
-
-	return 0;
-}
-
-uint8_t _delete(struct circ_buf *queue, uint8_t *value)
-{
-	if(is_empty(queue))
-		return 1;
-
-	*value = queue->buf[queue->head];
-	queue->head = (queue->head + 1) % queue->size;
-
-	return 0;
-}
-
-/***********************************************/
 
 static HAL_StatusTypeDef UART_WaitOnFlagUntilTimeout(UART_HandleTypeDef *huart, uint32_t Flag, uint32_t Status,
                                               uint32_t Tickstart, uint32_t Timeout)
@@ -237,16 +208,7 @@ static void __uart_tx_irq_handler(UART_HandleTypeDef *huart)
 				break;
 			}
 		}
-#if 0
-		else
-		{
-			huart->tx_index = 0;
-			__stop_tx_irq(huart);
-			huart->gState = HAL_UART_STATE_READY;
-			huart->TxCpltCallback(huart);
-			return;
-		}
-#endif
+
 		return;
 	}
 
@@ -301,95 +263,55 @@ static void __uart_tx_irq_handler(UART_HandleTypeDef *huart)
 	}
 }
 
-#ifdef TO_FIXED
+static int debug_cnt = 0;
+
 static void __uart_rx_irq_handler(UART_HandleTypeDef *huart)
 {
-	volatile uint8_t ret;
-	uint8_t index = huart->uart_idx;
+	uint8_t ret, index = huart->uart_idx;
+	BaseType_t pxHigherPriorityTaskWoken = pdFALSE;
 
-	assert_param(huart->pRxBuffPtr);
+	assert_param(huart->queue);
 
 	if(huart->RxState != HAL_UART_STATE_BUSY_RX)
 		return;
 
-	trace_debug("[UART%d] huart->rx_size = %d\n", index, huart->rx_size);
-
-	/*  receive data by uart register */
-	if(huart->pRxBuffPtr)
+	/* receive data by uart register */
+	while (huart->Instance->lsr & SP_UART_LSR_RX)
 	{
-		while (huart->Instance->lsr & SP_UART_LSR_RX)// check fifo not empty
+		if((huart->Instance->lsr & SP_UART_LSR_FE) || (huart->Instance->lsr & SP_UART_LSR_OE) || \
+			(huart->Instance->lsr & SP_UART_LSR_PE))
 		{
-			if((huart->Instance->lsr & SP_UART_LSR_FE) || (huart->Instance->lsr & SP_UART_LSR_OE) || \
-				(huart->Instance->lsr & SP_UART_LSR_PE))
-			{
-				huart->RxState = HAL_UART_STATE_READY;
-				huart->ErrorCallback(huart);
-				continue;
-			}
-			/* get data */
-			if((huart->Instance->lsr & UART_LSR_RECEIVE_FIFO_STATUS) == UART_LSR_RECEIVE_FIFO_NOT_EMPTY){
-				volatile char ch = READ_REG(huart->Instance->dr);
-
-				ret = _insert(&huart->rx_queue, ch);
-				if (ret)
-					break;
-
-				trace_debug("[UART%d] huart->pRxBuffPtr = 0x%x\n", index, huart->pRxBuffPtr[huart->rx_queue.tail]);
-				huart->rx_index ++;
-			}
-
+			huart->RxState = HAL_UART_STATE_READY;
+			huart->ErrorCallback(huart);
+			continue;
 		}
 
-		huart->RxCpltCallback(huart);
-		huart->rx_index = 0;
-
-		return;
-	}
-}
+#if 0
+		/* Maybe remove. reason refer sp645_uart.c:249 */
+		if (xQueueIsQueueFullFromISR(huart->queue) == pdTRUE) {
+			__stop_rx_irq(huart);
+			huart->rx_full = 1;
+			portYIELD_FROM_ISR(pdTRUE);
+			break;
+		}
 #endif
+		/* get data */
+		char ch = READ_REG(huart->Instance->dr);
 
-static void __uart_rx_irq_handler(UART_HandleTypeDef *huart)
-{
-	uint8_t index = huart->uart_idx;
+		xQueueSendFromISR(huart->queue, &ch, &pxHigherPriorityTaskWoken);
 
-	assert_param(huart->pRxBuffPtr);
-
-	if(huart->RxState != HAL_UART_STATE_BUSY_RX)
-		return;
-	trace_debug("[UART%d] huart->rx_size %d \n", index, huart->rx_size);
-	/*  receive data by uart register */
-	if(huart->pRxBuffPtr)
-	{
-		while (huart->Instance->lsr & SP_UART_LSR_RX)
-		{
-			if((huart->Instance->lsr & SP_UART_LSR_FE) || (huart->Instance->lsr & SP_UART_LSR_OE) || \
-				(huart->Instance->lsr & SP_UART_LSR_PE))
-			{
-				huart->RxState = HAL_UART_STATE_READY;
-				huart->ErrorCallback(huart);
-				continue;
-			}
-			/* get data */
-			if((huart->Instance->lsr & UART_LSR_RECEIVE_FIFO_STATUS) == UART_LSR_RECEIVE_FIFO_NOT_EMPTY){
-				char ch = READ_REG(huart->Instance->dr);
-				trace_debug("[UART%d] %c ", index, ch);
-				huart->pRxBuffPtr[huart->rx_index] = ch;
-				huart->rx_index++;
-				if(huart->rx_size == huart->rx_index)
-				{
-					huart->rx_index = 0;
-					huart->RxState = HAL_UART_STATE_READY;
-					huart->RxCpltCallback(huart);
-					return;
-				}
-			}
-		}
-
-		huart->rx_index = 0;
-		huart->RxState = HAL_UART_STATE_READY;
-		huart->RxCpltCallback(huart);
-		return;
+		debug_cnt ++;
 	}
+
+#if 0
+	/* debug */
+	if(debug_cnt == 512) {
+		trace_debug("!!!!!!!%d %d \n", debug_cnt, debug_cnt1);
+	}
+#endif
+	huart->rx_index = 0;
+	portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
+
 }
 
 static void __uart_txdma_config(UART_HandleTypeDef *huart)
@@ -498,6 +420,18 @@ int HAL_UART_Get_TX_FIFO_Space(UART_HandleTypeDef *huart)
 {
 	assert_param(huart);
 	return (READ_REG(huart->Instance->txr)&0x3f);
+}
+
+int HAL_UART_Get_RX_FIFO_Space(UART_HandleTypeDef *huart)
+{
+	assert_param(huart);
+	return (READ_REG(huart->Instance->rxr)&0x3f);
+}
+
+void HAL_UART_Start_RX_IRQ(UART_HandleTypeDef *huart)
+{
+	assert_param(huart);
+	__start_rx_irq(huart);
 }
 
 void HAL_UART_Rxdma_IRQ_Handler(UART_HandleTypeDef *huart)
@@ -706,22 +640,16 @@ HAL_StatusTypeDef HAL_UART_Transmit_IT(UART_HandleTypeDef *huart, uint8_t *pData
 	}
 }
 
-HAL_StatusTypeDef HAL_UART_Receive_IT(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size)
+HAL_StatusTypeDef HAL_UART_Receive_IT(UART_HandleTypeDef *huart)
 {
 	assert_param(huart);
 
 	if (huart->RxState == HAL_UART_STATE_READY)
 	{
-		if ((pData == NULL) || (Size == 0U))
-		{
-			return  HAL_ERROR;
-		}
-
 		/* Init tickstart for timeout managment*/
 		__HAL_LOCK(huart);
+
 		huart->RxState = HAL_UART_STATE_BUSY_RX;
-		huart->pRxBuffPtr = pData;
-		huart->rx_size = Size;
 		huart->rx_index = 0;
 
 		/* start rx irq */
@@ -736,7 +664,6 @@ HAL_StatusTypeDef HAL_UART_Receive_IT(UART_HandleTypeDef *huart, uint8_t *pData,
 		return HAL_BUSY;
 	}
 }
-
 
 HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout)
 {
@@ -987,9 +914,13 @@ HAL_StatusTypeDef HAL_UART_Init(UART_HandleTypeDef *huart)
 	}
 
 	UART_InitCallbacksToDefault(huart);
+
+	huart->queue = xQueueCreate(64, 1);
+
 	huart->gState = HAL_UART_STATE_READY;
 	huart->RxState = HAL_UART_STATE_READY;
 	huart->Lock = HAL_UNLOCKED;
+
 	return HAL_OK;
 }
 

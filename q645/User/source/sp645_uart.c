@@ -1,5 +1,6 @@
 #include <FreeRTOS.h>
 #include <task.h>
+#include <semphr.h>
 #include "sp645_uart.h"
 #include "sp645_hal_conf.h"
 
@@ -23,7 +24,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 	HAL_StatusTypeDef ret = HAL_OK;
 	uint32_t copy_size;
 
-	trace_debug("[UART%d] HAL_UART_TxCpltCallback   %d\n", ucIndex, sTemp->tx_cnt);
+	trace_debug("[UART%d] %d\n", ucIndex, sTemp->tx_cnt);
 	if (sTemp->tx_cnt < sTemp->data_size) {
 		if (sTemp->loop = sTemp->data_size / UART_BUFFER_SIZE)
 			copy_size = UART_BUFFER_SIZE;
@@ -40,8 +41,6 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 	}
 }
 
-int debug_cnt = 0;
-
 /*
  * @brief	rx Transfer completed callback
  * @param	UartHandle pointer on the uart reference
@@ -49,34 +48,6 @@ int debug_cnt = 0;
  */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	uint8_t c;
-	HAL_StatusTypeDef ret = HAL_OK;
-
-	uint8_t ucIndex = huart->uart_idx;
-	q645_uart_TypeDef *sTemp = &sTemp_q645[ucIndex];
-	struct circ_buf *queue = &sTemp->queue;
-
-	debug_cnt ++;
-
-	do {
-		if (serial_rx_active(huart)) {
-			trace_error("[UART%d] Data Reception process is ongoing!\n", ucIndex);
-			break;
-		}
-
-		trace_debug("%d xxxxxxxx tail %d head %d \n", debug_cnt, queue->tail, queue->head);
-
-		c = sTemp->recv;
-		_insert(queue, c);
-
-		/* Restart RX irq */
-		ret = HAL_UART_Receive_IT(huart, &sTemp->recv, 1);
-		if (ret) {
-			trace_error("[UART%d] Rx isn't ready!\n", ucIndex);
-			break;
-		}
-
-	} while(0);
 
 }
 
@@ -90,7 +61,6 @@ void vUartCallback(void)
 	uint32_t ulCurrentInterrupt;
 	uint8_t ucIndex;
 
-	//trace_info("entry vUartCallback.\n");
 	__asm volatile ( "mrs %0, ipsr" : "=r" ( ulCurrentInterrupt )::"memory" );
 
 	switch(ulCurrentInterrupt - 16) {
@@ -165,6 +135,15 @@ void vUartInit(uint8_t ucIndex, uint32_t ulBaudRate, uint8_t ucPriority)
 
 	HAL_UART_Init(&xUARTHandle[ucIndex]);
 
+#if 0 //DEBUG fifo size
+	vTaskDelay(pdMS_TO_TICKS(5000));
+	int debug_fifo = 0;
+	while (xUARTHandle[ucIndex].Instance->lsr & SP_UART_LSR_RX) {
+		debug_fifo ++;
+		char ch = READ_REG(xUARTHandle[ucIndex].Instance->dr);
+		trace_info("%d %c\n", debug_fifo, ch);
+	}
+#endif
 	trace_info("[UART%d] Init done!\n", ucIndex);
 }
 
@@ -196,15 +175,8 @@ void vUartStartTx(uint8_t ucIndex, uint8_t *pucBuffer, uint32_t ulSize, uint8_t 
 void vUartStartRx(uint8_t ucIndex)
 {
 	HAL_StatusTypeDef ret = HAL_OK;
-	struct circ_buf *queue = &sTemp_q645[ucIndex].queue;
 
-	/* Init the circle buf */
-	queue->tail = 0;
-	queue->head = 1;
-	queue->buf = sTemp_q645[ucIndex].fixed_rxbuf;
-	queue->size = ARRAY_SIZE;
-
-	ret = HAL_UART_Receive_IT(&xUARTHandle[ucIndex], &sTemp_q645[ucIndex].recv, 1);
+	ret = HAL_UART_Receive_IT(&xUARTHandle[ucIndex]);
 	if (ret) {
 		trace_error("[UART%d] RX isn't ready!\n", ucIndex);
 	} else {
@@ -245,19 +217,38 @@ void vUartEndRx(uint8_t ucIndex)
  * @param	Uart number in use
  * @retval	character data received
  */
+int debug_cnt3 = 0;
 int vUartOutput(uint8_t ucIndex)
 {
-	uint8_t c, ret;
-	struct circ_buf *queue = &sTemp_q645[ucIndex].queue;
-
-	trace_debug("!!! tail %d head %d \n", queue->tail, queue->head);
+	uint8_t c;
+	BaseType_t ret;
 
 	/* Load data from circle buffer */
-	ret = _delete(queue, &c);
-	if(!ret) {
-		trace_debug("[UART%d] %d vUartOutput %c\n", ucIndex, cnt, c);
-		return c;
-	} else {
+	ret = xQueueReceive(xUARTHandle[ucIndex].queue, &c, portMAX_DELAY);
+	if(ret == pdFALSE)
 		return -1;
+
+	/* Just to simply verify that the data is not missing (receive 512 bytes) */
+	debug_cnt3 ++;
+	if (debug_cnt3 == 512) {
+		trace_debug("%d !!! %c\n", debug_cnt3, c);
 	}
+
+	/* The CPU will always execute code faster than the UART data transfer,
+	 * regardless of whether the fifo will be full. Maybe remove this function.
+	 * e.x.
+	 *	assume fifo size is 256 bytes, UART baud rate is 115200
+	 *	when FIFO is full, the taken time is
+	 *      256 * 8 / 115200 ≈ 17.78ms
+	 *	Cortex M4 freq 200MHz, 1.25 DMISP/MHz
+	 *	An instruction taken time is 4ns
+	 */
+#if 0
+	if(xUARTHandle[ucIndex].rx_full) {
+		xUARTHandle[ucIndex].rx_full = 0;
+		HAL_UART_Start_RX_IRQ(&xUARTHandle[ucIndex]);
+	}
+#endif
+
+	return c;
 }

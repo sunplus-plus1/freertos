@@ -10,6 +10,9 @@
 #include "sp645_hal_def.h"
 #include "sp645_cm4.h"
 #include "sp64xx.h"
+#include <FreeRTOS.h>
+#include <task.h>
+#include <semphr.h>
 
 /*
  * X = ((sclk + baud/2) / baud)
@@ -243,12 +246,10 @@ typedef struct
 
 #define uart_circ_empty(circ)           ((circ).head == (circ).tail)
 
-
 struct circ_buf {
         uint8_t *buf;
-	uint32_t size;
-        volatile uint32_t head;
-        volatile uint32_t tail;
+        uint32_t head;
+        uint32_t tail;
 };
 
 typedef struct __UART_HandleTypeDef
@@ -273,15 +274,11 @@ typedef struct __UART_HandleTypeDef
 	uint8_t*		txdma_buf;				  /* tx dma buffer,set for dma config */
 	uint8_t*		rxdma_buf;				  /* rx dma buffer,set for dma config */
   	struct circ_buf 	xmit;					  /* store txdata in dma mode  */
+	QueueHandle_t		queue;
   	void (* TxCpltCallback)(struct __UART_HandleTypeDef *huart);            /*!< UART Tx Complete Callback             */
   	void (* RxCpltCallback)(struct __UART_HandleTypeDef *huart);            /*!< UART Rx Complete Callback             */
   	void (* ErrorCallback)(struct __UART_HandleTypeDef *huart);
 }UART_HandleTypeDef;
-
-uint8_t is_full(struct circ_buf *queue);
-uint8_t is_empty(struct circ_buf *queue);
-uint8_t _insert(struct circ_buf *queue, uint8_t value);
-uint8_t _delete(struct circ_buf *queue, uint8_t *value);
 
 HAL_StatusTypeDef HAL_UART_Init(UART_HandleTypeDef *huart);
 HAL_StatusTypeDef HAL_UART_DeInit(UART_HandleTypeDef *huart);
@@ -290,13 +287,17 @@ HAL_StatusTypeDef HAL_UART_Transmit_DMA(UART_HandleTypeDef *huart, uint8_t *pDat
 HAL_StatusTypeDef HAL_UART_Receive(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
 HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout);
 HAL_StatusTypeDef HAL_UART_Transmit_IT(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size);
-HAL_StatusTypeDef HAL_UART_Receive_IT(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size);
+HAL_StatusTypeDef HAL_UART_Receive_IT(UART_HandleTypeDef *huart);
 HAL_StatusTypeDef HAL_UART_AbortTransmit(UART_HandleTypeDef *huart);
 HAL_StatusTypeDef HAL_UART_AbortReceive(UART_HandleTypeDef *huart);
 HAL_StatusTypeDef HAL_UART_Abort(UART_HandleTypeDef *huart);
 HAL_StatusTypeDef HAL_UART_Config_DMA_Buf(uint32_t* dma_start_addr);
 uint32_t HAL_UART_GetState(UART_HandleTypeDef *huart);
 int HAL_UART_Get_TX_FIFO_Space(UART_HandleTypeDef *huart);
+int HAL_UART_Get_RX_FIFO_Space(UART_HandleTypeDef *huart);
+
+void HAL_UART_Start_RX_IRQ(UART_HandleTypeDef *huart);
+
 void HAL_UART_IRQHandler(void *arg);
 
 #ifdef __cplusplus

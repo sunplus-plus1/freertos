@@ -40,7 +40,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define STRINGIFY(x) #x
+#define _STR(x) _VAL(x)
+#define _VAL(x) #x
 
 /* ------------------------------------------------------------------------------
  *         Exported Definitions
@@ -53,8 +54,8 @@
 #define TRACE_LEVEL_FATAL      1
 #define TRACE_LEVEL_SILENT     0
 
-//#undef TRACE_LEVEL
-//#define TRACE_LEVEL TRACE_LEVEL_ERROR
+#undef TRACE_LEVEL
+//#define TRACE_LEVEL TRACE_LEVEL_DEBUG
 /* By default, all traces are output except the debug one. */
 #ifndef TRACE_LEVEL
 #define TRACE_LEVEL TRACE_LEVEL_INFO
@@ -110,7 +111,7 @@ extern uint32_t trace_level;
 #endif
 
 #if (TRACE_LEVEL >= TRACE_LEVEL_DEBUG)
-#define trace_debug(...)              { if (trace_level >= TRACE_LEVEL_DEBUG) { printf("[DEBUG]: " __FILE__ ":" STRINGIFY(__LINE__) " " __VA_ARGS__); } }
+#define trace_debug(...)              { if (trace_level >= TRACE_LEVEL_DEBUG) { printf("[DEBUG]: " __FILE__ ":" _STR(__LINE__) " " __VA_ARGS__); } }
 #define trace_debug_wp(...)           { if (trace_level >= TRACE_LEVEL_DEBUG) { printf(__VA_ARGS__); } }
 #else
 #define trace_debug(...)              { }

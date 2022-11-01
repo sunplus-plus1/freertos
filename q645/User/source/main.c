@@ -39,7 +39,7 @@
 
 //#define IRQ_TEST
 //#define GPIO_TEST
-#define UART_TEST
+//#define UART_TEST
 
 #define TASK_STACK_SIZE 128
 
@@ -224,7 +224,7 @@ void vTaskCodeTx(void *pArg)
 	uint8_t flag = 0;
 	uint32_t trans_size;
 
-	trace_info("entry vTaskCodeTx.\n");
+	trace_info("entry vTaskCodeTx().\n");
 
 	trans_size = 1024;
 	temp_buf = malloc(trans_size);
@@ -256,7 +256,8 @@ void vTaskCodeRx(void *pArg)
 		/* return 0 -> data available */
 		ret = vUartOutput(UART1_INDEX);
 		if(ret != -1) {
-			printf("get %c\n", ret);
+			//Don't call printf(), it spend too much time to get the data out of buffer in time.
+			//printf("get %c\n", ret);
 		}
 	}
 
@@ -269,8 +270,8 @@ int main ()
 
 	HAL_Init(); //STC init
 	prvTimerInit();
-	vUartInit(UART1_INDEX, 115200, 0x20);
-	vUartInit(UART2_INDEX, 115200, 0x20);
+	vUartInit(UART1_INDEX, 115200, 0xE0);
+	vUartInit(UART2_INDEX, 115200, 0xE0);
 
 #ifdef IRQ_TEST
 	xTaskCreate(vTaskCode1, "Task1", TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY+1, NULL);
@@ -283,9 +284,8 @@ int main ()
 
 #ifdef UART_TEST
 #if 1
-	xTaskCreate(vTaskCodeTx, "Uart1Tx", TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL);
-//#else
-	xTaskCreate(vTaskCodeRx, "Uart1Rx", TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL);
+	xTaskCreate(vTaskCodeTx, "Uart2Tx", TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, NULL);
+	xTaskCreate(vTaskCodeRx, "Uart1Rx", TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL);
 #endif
 #endif
 	trace_info("system start!!! \n");

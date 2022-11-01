@@ -5,8 +5,6 @@
 #include "sp64xx.h"
 
 #define UART_BUFFER_SIZE	64
-#define USED_SIZE	UART_BUFFER_SIZE
-#define ARRAY_SIZE	(UART_BUFFER_SIZE + 1)
 
 typedef enum {
 	UART0_INDEX=0,
@@ -19,15 +17,11 @@ typedef enum {
 typedef struct __q645_uart
 {
 	uint32_t tx_cnt;
-	uint32_t rx_cnt;
 	uint32_t data_size;
 	uint8_t *usr_buf; //user data
-	uint8_t fixed_txbuf[ARRAY_SIZE];
-	uint8_t fixed_rxbuf[ARRAY_SIZE];
+	uint8_t fixed_txbuf[UART_BUFFER_SIZE];
 	uint8_t *flag_end;
 	uint8_t loop;
-	struct circ_buf queue;
-	uint8_t recv; //1 byte space to store the data temporary
 } q645_uart_TypeDef;
 
 void vUartInit(uint8_t ucIndex, uint32_t ulBaudRate, uint8_t ucPriority);

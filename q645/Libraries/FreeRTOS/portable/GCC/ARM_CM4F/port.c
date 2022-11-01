@@ -731,7 +731,7 @@ static void vPortEnableVFP( void )
 
         /* Obtain the number of the currently executing interrupt. */
         __asm volatile ( "mrs %0, ipsr" : "=r" ( ulCurrentInterrupt )::"memory" );
-	trace_info("!!!!!!!! %d\n", ulCurrentInterrupt);
+	//trace_info("!!!!!!!! %d\n", ulCurrentInterrupt);
         /* Is the interrupt number a user defined interrupt? */
         if( ulCurrentInterrupt >= portFIRST_USER_INTERRUPT_NUMBER )
         {
@@ -761,7 +761,7 @@ static void vPortEnableVFP( void )
              * The following links provide detailed information:
              * https://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html
              * https://www.FreeRTOS.org/FAQHelp.html */
-             trace_info("!!!!!!!! %d %d\n", ucCurrentPriority, ucMaxSysCallPriority);
+             //trace_info("!!!!!!!! %d %d\n", ucCurrentPriority, ucMaxSysCallPriority);
             configASSERT( ucCurrentPriority >= ucMaxSysCallPriority );
         }
 
