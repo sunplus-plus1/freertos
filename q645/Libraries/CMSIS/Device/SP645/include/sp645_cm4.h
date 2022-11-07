@@ -869,6 +869,7 @@ UART LCR register BIT
 #define MCR_DTS_BIT                    (0x1 << 0)
 
 /* interrupt */
+#define SP_UART_LSR_TXE    (1 << 6) /* 1: transmit fifo is empty */
 #define SP_UART_LSR_BC     (1 << 5) /* break condition */
 #define SP_UART_LSR_FE     (1 << 4) /* frame error */
 #define SP_UART_LSR_OE     (1 << 3) /* overrun error */

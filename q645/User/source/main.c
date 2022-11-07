@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+//#define TIME_TEST
 //#define IRQ_TEST
 //#define GPIO_TEST
 //#define UART_TEST
@@ -51,6 +52,8 @@ void vApplicationIdleHook( void );
 void vApplicationTickHook( void );
 
 extern void initialise_monitor_handles(void);
+extern void vRegisterSampleCLICommands( void );
+extern void vUARTCommandConsoleStart( uint16_t usStackSize, UBaseType_t uxPriority );
 
 TIM_HandleTypeDef xTIMHandle = {0};
 void prvTimerInit()
@@ -64,31 +67,10 @@ void prvTimerInit()
 	xTIMHandle.IrqHandle = STC_IRQ_Handler;
 
 	HAL_TIM_Init(&xTIMHandle);
-	//HAL_TIM_Start(&xTIMHandle);
+	HAL_TIM_Start(&xTIMHandle);
 
 	trace_info("[Timer] timer init \n");
 }
-
-#if 0
-I2C_HandleTypeDef gI2C;
-void i2c_init()
-{
-	gI2C.Instance = SP_I2CM0;
-	gI2C.Index = 0;
-	gI2C.gdma = SP_GDMA0;
-	HAL_Module_Clock_enable(I2CM0 + gI2C.Index, 1);
-	HAL_Module_Clock_gate(I2CM0 + gI2C.Index, 1);
-	HAL_Module_Reset(I2CM0 + gI2C.Index, 0);
-
-	HAL_PINMUX_Cfg(PINMUX_I2C_0 + gI2C.Index, 1);
-
-	/* Set frequency */
-	gI2C.Init.Timing = 100;
-	gI2C.State = HAL_I2C_STATE_RESET;
-
-	trace_info("[I2C] i2c init \n");
-}
-#endif
 
 #ifdef IRQ_TEST
 SemaphoreHandle_t xBinarySemaphore1 = NULL;
@@ -216,62 +198,22 @@ void vTaskCodeGPIO(void *pArg)
 }
 #endif
 
-#ifdef UART_TEST
-void vTaskCodeTx(void *pArg)
-{
-	uint8_t *temp_buf;
-	size_t i, j;
-	uint8_t flag = 0;
-	uint32_t trans_size;
-
-	trace_info("entry vTaskCodeTx().\n");
-
-	trans_size = 1024;
-	temp_buf = malloc(trans_size);
-
-	for(i = 0; i < (trans_size / 8) + 1; i++) {
-		for(j = 0; j < 8; j++)
-			temp_buf[i * 8 + j] = 0x30 + j;
-	}
-
-	vUartStartTx(UART2_INDEX, temp_buf, trans_size, &flag);
-	while(!flag) {
-		free(temp_buf);
-		vTaskDelete(NULL);
-	}
-}
-
-void vTaskCodeRx(void *pArg)
-{
-	uint8_t *temp_buf1;
-	uint32_t i, j;
-
-	volatile int ret;
-
-	trace_info("entry vTaskCodeRx().\n");
-
-	vUartStartRx(UART1_INDEX);
-
-	while(1) {
-		/* return 0 -> data available */
-		ret = vUartOutput(UART1_INDEX);
-		if(ret != -1) {
-			//Don't call printf(), it spend too much time to get the data out of buffer in time.
-			//printf("get %c\n", ret);
-		}
-	}
-
-}
-#endif
-
 int main ()
 {
 	trace_info("********** COMPILE DATE "DATE_COMPILE" **********\n");
 
+#ifdef TIME_TEST
 	HAL_Init(); //STC init
 	prvTimerInit();
-	vUartInit(UART1_INDEX, 115200, 0xE0);
-	vUartInit(UART2_INDEX, 115200, 0xE0);
+#endif
+
+/* There is a sample case. For details about how to use UART interfaces,
+ * see file UARTCommandConsole.c and serial.c.
+ */
+#ifdef UART_TEST
+	vRegisterSampleCLICommands();
+	vUARTCommandConsoleStart( TASK_STACK_SIZE, tskIDLE_PRIORITY + 1 );
+#endif
 
 #ifdef IRQ_TEST
 	xTaskCreate(vTaskCode1, "Task1", TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY+1, NULL);
@@ -282,12 +224,6 @@ int main ()
 	xTaskCreate(vTaskCodeGPIO, "GPIO", TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY+1, NULL);
 #endif
 
-#ifdef UART_TEST
-#if 1
-	xTaskCreate(vTaskCodeTx, "Uart2Tx", TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, NULL);
-	xTaskCreate(vTaskCodeRx, "Uart1Rx", TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, NULL);
-#endif
-#endif
 	trace_info("system start!!! \n");
 	vTaskStartScheduler();
 

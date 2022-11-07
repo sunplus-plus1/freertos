@@ -22,6 +22,8 @@
 #define UART_BAUD_DIV_H(baud, sclk)     ((((sclk) + ((baud) / 2)) / (baud)) >> 12)
 #define UART_BAUD_DIV_L(baud, sclk)     ((((((sclk) + ((baud) / 2)) / (baud)) & 0xf) << 12) | \
                                          ((((((sclk) + ((baud) / 2)) / (baud)) >> 4) & 0xff) - 1))
+#define UART_IT_RX	(1 << 1)
+#define UART_IT_TX	(1 << 0)
 
 #define UART_SRC_CLK		            HSE_VALUE
 
@@ -293,12 +295,20 @@ HAL_StatusTypeDef HAL_UART_AbortReceive(UART_HandleTypeDef *huart);
 HAL_StatusTypeDef HAL_UART_Abort(UART_HandleTypeDef *huart);
 HAL_StatusTypeDef HAL_UART_Config_DMA_Buf(uint32_t* dma_start_addr);
 uint32_t HAL_UART_GetState(UART_HandleTypeDef *huart);
-int HAL_UART_Get_TX_FIFO_Space(UART_HandleTypeDef *huart);
-int HAL_UART_Get_RX_FIFO_Space(UART_HandleTypeDef *huart);
+int HAL_UART_GetTxFifoSpace(UART_HandleTypeDef *huart);
+int HAL_UART_GetRxFifoSpace(UART_HandleTypeDef *huart);
+int HAL_UART_IsTxFifoEmpty(UART_HandleTypeDef *huart);
+int HAL_UART_IsTxFifoFull(UART_HandleTypeDef *huart);
+int HAL_UART_IsRxFifoEmpty(UART_HandleTypeDef *huart);
 
-void HAL_UART_Start_RX_IRQ(UART_HandleTypeDef *huart);
-
+void HAL_UART_ITConfig(UART_HandleTypeDef *huart, uint8_t flag, FunctionalState enable);
+void HAL_UART_SendData(UART_HandleTypeDef *huart, char ch);
+char HAL_UART_ReceiveData(UART_HandleTypeDef *huart);
+FlagStatus HAL_UART_GetITStatus(UART_HandleTypeDef *huart, uint8_t flag);
 void HAL_UART_IRQHandler(void *arg);
+
+
+
 
 #ifdef __cplusplus
 }

@@ -17,6 +17,8 @@ CMSIS_PATH = Libraries/CMSIS
 CMSIS_LIB = $(CMSIS_PATH)/Device/SP645
 SP645_LIB = Libraries/Driver
 USER_SRC_PATH = User
+CLI_LIB = Libraries/FreeRTOS-Plus-CLI
+CLI_DEMO_PATH = FreeRTOS_Plus_CLI_Demos
 
 # system C file
 source_FILES += Libraries/System/syscall.c
@@ -40,10 +42,14 @@ source_FILES += $(SP645_LIB)/source/sp645_hal_gpio.c
 source_FILES += $(SP645_LIB)/source/sp645_hal_uart.c
 # src C file
 #source_FILES += $(USER_SRC_PATH)/source/main.c
-source_FILES += $(USER_SRC_PATH)/source/sp645_uart.c
 source_FILES += $(USER_SRC_PATH)/source/sp645_it.c
 source_FILES += $(USER_SRC_PATH)/source/main_blinky.c
 source_FILES += $(USER_SRC_PATH)/source/trace.c
+source_FILES += $(USER_SRC_PATH)/source/serial.c
+# CLI c file
+source_FILES += $(CLI_LIB)/FreeRTOS_CLI.c
+source_FILES += $(CLI_DEMO_PATH)/Sample-CLI-commands.c
+source_FILES += $(CLI_DEMO_PATH)/UARTCommandConsole.c
 
 # *.h
 include_DIRS += -I.
@@ -53,6 +59,7 @@ include_DIRS += -I$(CMSIS_LIB)/include
 include_DIRS += -I$(SP645_LIB)/include
 include_DIRS += -I$(FREERTOS_SRC)/include
 include_DIRS += -I$(FREERTOS_SRC)/portable/GCC/ARM_CM4F
+include_DIRS += -I$(CLI_LIB)
 
 CFLAGS += -DmainCREATE_SIMPLE_BLINKY_DEMO_ONLY=1
 

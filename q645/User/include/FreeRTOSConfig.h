@@ -59,7 +59,7 @@ extern void vAssertCalled( void );
 #define configMINIMAL_STACK_SIZE  ( ( unsigned short ) 2000 )
 #define configTOTAL_HEAP_SIZE     ( ( size_t ) ( 279000 ) )
 #define configMAX_TASK_NAME_LEN   ( 10 )
-#define configUSE_TRACE_FACILITY    0
+#define configUSE_TRACE_FACILITY    1 /* make vTaskList() valid */
 #define configUSE_16_BIT_TICKS      0
 #define configIDLE_SHOULD_YIELD     0
 #define configUSE_CO_ROUTINES       0
@@ -71,6 +71,10 @@ extern void vAssertCalled( void );
 #define configUSE_COUNTING_SEMAPHORES    1
 #define configSUPPORT_DYNAMIC_ALLOCATION 1
 #define configNUM_TX_DESCRIPTORS         15
+
+#define configCOMMAND_INT_MAX_OUTPUT_SIZE 200
+/* To use vTaskList() */
+#define configUSE_STATS_FORMATTING_FUNCTIONS 1
 
 /* Set the following definitions to 1 to include the API function, or zero
 to exclude the API function. */

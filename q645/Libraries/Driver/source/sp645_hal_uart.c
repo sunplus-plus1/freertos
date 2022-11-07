@@ -416,22 +416,56 @@ static void __uart_rxdma_config(UART_HandleTypeDef *huart)
 	}
 }
 
-int HAL_UART_Get_TX_FIFO_Space(UART_HandleTypeDef *huart)
+int HAL_UART_GetTxFifoSpace(UART_HandleTypeDef *huart)
 {
 	assert_param(huart);
 	return (READ_REG(huart->Instance->txr)&0x3f);
 }
 
-int HAL_UART_Get_RX_FIFO_Space(UART_HandleTypeDef *huart)
+int HAL_UART_GetRxFifoSpace(UART_HandleTypeDef *huart)
 {
 	assert_param(huart);
 	return (READ_REG(huart->Instance->rxr)&0x3f);
 }
 
-void HAL_UART_Start_RX_IRQ(UART_HandleTypeDef *huart)
+int HAL_UART_IsTxFifoEmpty(UART_HandleTypeDef *huart)
 {
 	assert_param(huart);
-	__start_rx_irq(huart);
+	return (READ_REG(huart->Instance->lsr)&SP_UART_LSR_TXE);
+}
+
+int HAL_UART_IsTxFifoFull(UART_HandleTypeDef *huart)
+{
+	assert_param(huart);
+	return !(READ_REG(huart->Instance->lsr)&SP_UART_LSR_TX);
+}
+
+int HAL_UART_IsRxFifoEmpty(UART_HandleTypeDef *huart)
+{
+	assert_param(huart);
+	return !(READ_REG(huart->Instance->lsr)&SP_UART_LSR_RX);
+}
+
+
+void HAL_UART_ITConfig(UART_HandleTypeDef *huart, uint8_t flag, FunctionalState enable)
+{
+	if(flag == UART_IT_TX)
+	{
+		if(enable == ENABLE)
+			__start_tx_irq(huart);
+		else
+			__stop_tx_irq(huart);
+
+	}
+	else if(flag == UART_IT_RX)
+	{
+		if(enable == ENABLE)
+			__start_rx_irq(huart);
+		else
+			__stop_rx_irq(huart);
+
+	}
+
 }
 
 void HAL_UART_Rxdma_IRQ_Handler(UART_HandleTypeDef *huart)
@@ -499,6 +533,32 @@ void HAL_UART_Rxdma_IRQ_Handler(UART_HandleTypeDef *huart)
 	/* do dma for the next data*/
 	WRITE_REG(rxdma_reg->rxdma_enable_sel,READ_REG((rxdma_reg->rxdma_enable_sel)) | DMA_INT);
 	WRITE_REG(rxdma_reg->rxdma_enable_sel,READ_REG((rxdma_reg->rxdma_enable_sel)) | DMA_GO);
+}
+
+void HAL_UART_SendData(UART_HandleTypeDef *huart, char ch)
+{
+	assert_param(huart->Instance);
+
+	WRITE_REG(huart->Instance->dr, ch);
+}
+
+char HAL_UART_ReceiveData(UART_HandleTypeDef *huart)
+{
+	assert_param(huart->Instance);
+
+	return READ_REG(huart->Instance->dr);
+}
+
+FlagStatus HAL_UART_GetITStatus(UART_HandleTypeDef *huart, uint8_t flag)
+{
+	assert_param(huart->Instance);
+
+	unsigned int isc_temp = huart->Instance->isc;
+
+	if(isc_temp & flag)
+		return SET;
+
+	return RESET;
 }
 
 void HAL_UART_IRQHandler(void *arg)
