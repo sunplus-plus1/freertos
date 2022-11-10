@@ -30,7 +30,6 @@
 
 #include<FreeRTOSConfig.h>
 #include "sp645_hal_conf.h"
-#include "sp645_uart.h"
 #include "sp645_it.h"
 #include <string.h>
 #include <stdarg.h>

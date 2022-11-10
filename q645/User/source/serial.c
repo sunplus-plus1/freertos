@@ -35,7 +35,6 @@
 #include "semphr.h"
 
 /* Library includes. */
-#include "sp645_uart.h"
 
 /* Demo application includes. */
 #include "serial.h"

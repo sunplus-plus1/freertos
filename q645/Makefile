@@ -130,8 +130,8 @@ ${BUILD_DIR}/main.o : $(USER_SRC_PATH)/source/main.c Makefile
 	$(CC) -DDATE_COMPILE='"$(DATE_COMPILE)"' $(CFLAGS) $(CPPFLAGS) -MMD -c $< -o $@
 
 ${BUILD_DIR}/%.o : %.c Makefile
-	-mkdir -p $(@D)
-	$(CC) $(CFLAGS) $(CPPFLAGS) -MMD -c $< -o $@
+	@-mkdir -p $(@D)
+	@$(CC) $(CFLAGS) $(CPPFLAGS) -MMD -c $< -o $@
 
 clean:
 	@-rm -rf $(BUILD_DIR)
