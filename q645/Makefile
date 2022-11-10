@@ -103,10 +103,15 @@ DATE_COMPILE = $(shell date --rfc-3339=second)
 .PHONY: clean
 
 $(BUILD_DIR)/$(BIN) : $(OBJ_FILES)
-	$(CPP) -P $(CFLAGS) $(LD_SRC) $(LD_FILE)
-	$(CC) -ffunction-sections -fdata-sections $(CFLAGS) $(LDFLAGS) $+ -o $(BUILD_DIR)/$(TARGET)
-	$(PREFIX)objdump -d -S $(BUILD_DIR)/$(TARGET) > $(BUILD_DIR)/$(TARGET).dis
-	$(PREFIX)objcopy -O binary -S $(BUILD_DIR)/$(TARGET) $@
+	@$(CPP) -P $(CFLAGS) $(LD_SRC) $(LD_FILE)
+	@echo "CPP	" $(LD_FILE)
+	@$(CC) -ffunction-sections -fdata-sections $(CFLAGS) $(LDFLAGS) $+ -o $(BUILD_DIR)/$(TARGET)
+	@echo "CC	" $(BUILD_DIR)/$(TARGET)
+	@$(PREFIX)objdump -d -S $(BUILD_DIR)/$(TARGET) > $(BUILD_DIR)/$(TARGET).dis
+	@echo "OBJDUMP	" $(BUILD_DIR)/$(TARGET).dis
+	@$(PREFIX)objcopy -O binary -S $(BUILD_DIR)/$(TARGET) $@
+	@echo "OBJCOPY	" $@
+
 ifeq ($(PACK_HERE), 1)
 	@rm -rf bin/zmem*
 	@hexdump -v -e '1/4 "%08x\n"' $@ > temp.hex
@@ -120,19 +125,21 @@ endif
 	$(CC) -M $(CPPFLAGS) $< > $@.$$$$; \
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
+	@echo "CC	" $@
 
 includeS := $(source_FILES:%.c=$(BUILD_DIR)/%.d)
 -include $(includeS)
 
 ${BUILD_DIR}/main.o : $(USER_SRC_PATH)/source/main.c Makefile
-	-mkdir -p $(@D)
+	@-mkdir -p $(@D)
 #	data_compile=`date --rfc-3339=second`;
-	$(CC) -DDATE_COMPILE='"$(DATE_COMPILE)"' $(CFLAGS) $(CPPFLAGS) -MMD -c $< -o $@
+	@$(CC) -DDATE_COMPILE='"$(DATE_COMPILE)"' $(CFLAGS) $(CPPFLAGS) -MMD -c $< -o $@
+	@echo "CC	" $@
 
 ${BUILD_DIR}/%.o : %.c Makefile
 	@-mkdir -p $(@D)
 	@$(CC) $(CFLAGS) $(CPPFLAGS) -MMD -c $< -o $@
-
+	@echo "CC	" $@
 clean:
 	@-rm -rf $(BUILD_DIR)
 
